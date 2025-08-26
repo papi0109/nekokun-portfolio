@@ -1,0 +1,37 @@
+# Ignore dependencies and dev files
+node_modules/
+**/node_modules/**
+
+# Version control
+.git/
+.gitignore
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Package manager artifacts
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output (if any)
+dist/
+build/
+out/
+
+# Maps and cache
+**/*.map
+.cache/
+.tmp/
+
+# Common docs/config
+README.md
+.prettierrc*
+.eslintrc*
+tsconfig.json
+webpack.config.js
+vite.config.*
+rollup.config.*

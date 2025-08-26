@@ -1,0 +1,105 @@
+/*
+  Minimal, white-base portfolio styles for GitHub Pages.
+  - SPA-friendly section views
+  - Subtle animations and accessible contrast
+*/
+
+:root{
+  --bg: #ffffff;
+  --text: #121212;
+  --muted: #616161;
+  --border: #eaeaea;
+  --primary: #0d6efd; /* soft blue */
+  --primary-ink: #0a58ca;
+  --shadow: 0 8px 30px rgba(0,0,0,.06);
+  --radius: 12px;
+  --container: 1100px;
+}
+
+*{box-sizing: border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth}
+body{
+  margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Noto Sans, "Apple Color Emoji", "Segoe UI Emoji";
+  background: var(--bg); color: var(--text);
+  line-height: 1.6;
+}
+
+img{max-width:100%; display:block}
+a{color:var(--primary); text-decoration:none}
+a:hover{color:var(--primary-ink); text-decoration:underline}
+
+.container{width:min(100% - 32px, var(--container)); margin-inline:auto}
+
+/* Header */
+.site-header{ position: sticky; top:0; background:rgba(255,255,255,.8); backdrop-filter: saturate(180%) blur(10px); border-bottom:1px solid var(--border); z-index:10 }
+.header-inner{ display:flex; align-items:center; justify-content:space-between; padding:14px 0 }
+.brand{ display:flex; align-items:center; gap:10px; font-weight:700; color:inherit }
+.brand-mark{ font-size:20px; color:var(--primary) }
+.brand-text{ letter-spacing:.3px }
+
+.site-nav{ display:flex; gap:20px; align-items:center }
+.site-nav a{ color:inherit; opacity:.8; padding:6px 2px; border-bottom:2px solid transparent }
+.site-nav a.active{ opacity:1; border-color: var(--primary) }
+
+.nav-toggle{ display:none; background:none; border:0; width:40px; height:40px; border-radius:8px }
+.nav-toggle span{ display:block; height:2px; background:#333; margin:7px 8px }
+
+@media (max-width: 760px){
+  .nav-toggle{ display:block }
+  .site-nav{ position: absolute; inset: 60px 0 auto 0; background:#fff; border-bottom:1px solid var(--border); padding:10px 16px; display:none; flex-direction:column; align-items:flex-start }
+  .site-nav.open{ display:flex }
+}
+
+/* Views */
+.site-main{ padding: 32px 0 64px }
+.view{ display:none; animation: fade-up .6s ease both }
+.view.active{ display:block }
+
+.hero{ padding: 40px 0 20px }
+.hero h1{ font-size: clamp(28px, 6vw, 44px); line-height:1.2; margin: 0 0 8px }
+.lead{ font-size: clamp(16px, 2.5vw, 20px); color:var(--muted); margin: 0 0 18px }
+.cta{ display:flex; gap:12px; flex-wrap:wrap }
+
+.section-title{ font-size: 28px; margin: 24px 0 }
+.muted{ color:var(--muted) }
+
+/* Buttons */
+.btn{ display:inline-block; padding:10px 16px; border-radius:10px; border:1px solid var(--border); color:inherit; background:#fff; box-shadow: var(--shadow); transition: transform .15s ease, box-shadow .2s ease }
+.btn:hover{ transform: translateY(-1px) }
+.btn.primary{ background: var(--primary); border-color: transparent; color:#fff; box-shadow: 0 6px 24px rgba(13,110,253,.25) }
+.btn.primary:hover{ background: var(--primary-ink) }
+.btn.ghost{ background: transparent; box-shadow:none }
+.btn.small{ padding:8px 12px; border-radius:8px }
+
+/* Chips */
+.chip-list{ display:flex; gap:10px; flex-wrap:wrap; padding:0; list-style:none }
+.chip{ padding:6px 10px; border:1px solid var(--border); border-radius:999px; background:#fff; box-shadow: var(--shadow); font-size:14px }
+
+/* Grid / Cards */
+.grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:18px }
+.card{ grid-column: span 12; border:1px solid var(--border); border-radius: var(--radius); background:#fff; box-shadow: var(--shadow); overflow:hidden; display:flex; flex-direction:column }
+.card-body{ padding:16px }
+.card-title{ margin:0 0 8px; font-size:20px }
+.card-text{ color:var(--muted); margin:0 0 12px }
+.card-actions{ display:flex; gap:10px; padding:0 16px 16px }
+
+@media (min-width: 700px){
+  .card{ grid-column: span 6 }
+}
+@media (min-width: 1024px){
+  .card{ grid-column: span 4 }
+}
+
+/* Footer */
+.site-footer{ border-top:1px solid var(--border); padding:20px 0; color:var(--muted) }
+
+/* Animations */
+@keyframes fade-up{ from{ opacity:0; transform: translateY(8px) } to{ opacity:1; transform:none } }
+
+.reveal-on-scroll{ opacity:0; transform: translateY(8px) }
+.reveal{ opacity:1; transform:none; transition: opacity .6s ease var(--d, 0s), transform .6s ease var(--d, 0s) }
+
+/* Utilities */
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+
