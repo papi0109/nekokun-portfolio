@@ -35,3 +35,4 @@ tsconfig.json
 webpack.config.js
 vite.config.*
 rollup.config.*
+.env

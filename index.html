@@ -3,9 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Software Developer Portfolio</title>
-    <meta name="description" content="Software developer portfolio — projects, skills, and contact." />
+    <title>ねこくん＠アラサーエンジニアのポートフォリオ</title>
+    <meta name="description" content="ねこくん（アラサーエンジニア）のポートフォリオ。プロジェクト、スキル、連絡先。" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/main.css" />
   </head>
   <body>
@@ -13,92 +15,102 @@
       <div class="container header-inner">
         <a href="#home" class="brand" data-link>
           <span class="brand-mark" aria-hidden="true">◆</span>
-          <span class="brand-text">Portfolio</span>
+          <span class="brand-text">ねこくん＠アラサーエンジニアのポートフォリオ</span>
         </a>
         <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="メニューを開く">
           <span></span><span></span><span></span>
         </button>
         <nav id="site-nav" class="site-nav" role="navigation">
-          <a href="#home" data-link>Home</a>
-          <a href="#about" data-link>About</a>
-          <a href="#skills" data-link>Skills</a>
-          <a href="#projects" data-link>Projects</a>
-          <a href="#contact" data-link>Contact</a>
+          <a href="#about" data-link>自己紹介</a>
+          <a href="#skills" data-link>スキル</a>
+          <a href="#career" data-link>職務経歴</a>
+          <a href="#links" data-link>関連リンク</a>
+          <a href="#contact" data-link>お問い合わせ</a>
         </nav>
       </div>
     </header>
 
     <main class="site-main container">
       <section id="home" class="view" data-route="home" aria-label="Home">
-        <div class="hero">
-          <h1 class="reveal-on-scroll">Hello, I’m <span class="accent">Your Name</span></h1>
-          <p class="lead reveal-on-scroll" style="--d: 0.05s">Software Developer building clean, reliable web apps.</p>
-          <div class="cta reveal-on-scroll" style="--d: 0.1s">
-            <a class="btn primary" href="#projects" data-link>View Projects</a>
-            <a class="btn ghost" href="#contact" data-link>Contact</a>
+        <div class="hero hero-inner">
+          <div class="hero-media reveal-on-scroll">
+            <img src="assets/images/nekokun.jpeg" alt="ねこくん（左向きの猫キャラクター）" class="avatar" />
+          </div>
+          <div class="hero-copy">
+            <h1 class="reveal-on-scroll">こんにちは、<span class="accent">ねこくん</span>です！</h1>
+            <p class="titleline reveal-on-scroll" style="--d: 0.05s">自称PM/PL・自称AIエンジニア・自称フルサイクルエンジニア</p>
+            <div class="cta reveal-on-scroll" style="--d: 0.1s">
+              <a class="btn primary" href="#career" data-link>職務経歴を見る</a>
+              <a class="btn ghost" href="#contact" data-link>問い合わせる</a>
+            </div>
+            <p class="note reveal-on-scroll" style="--d: 0.12s">※ このポートフォリオは設計を行い、実装の約90%を「バイブコーディング」で制作しています。</p>
           </div>
         </div>
       </section>
 
-      <section id="about" class="view" data-route="about" aria-label="About">
-        <h2 class="section-title">About</h2>
-        <p class="muted">
-          I’m a software developer focused on crafting performant, accessible, and maintainable products.
-          I enjoy type-safe code, clean architecture, and delightful UX.
-        </p>
+      <section id="about" class="view loading" data-route="about" aria-label="About">
+        <h2 class="section-title">自己紹介</h2>
+        <div class="loading-indicator" aria-live="polite" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <div class="section-body">
+          <p class="muted">
+            パフォーマンスとアクセシビリティ、保守性を重視したプロダクトをつくっています。
+            型安全なコード、クリーンアーキテクチャ、心地よい UX が好きです。
+          </p>
+        </div>
       </section>
 
-      <section id="skills" class="view" data-route="skills" aria-label="Skills">
-        <h2 class="section-title">Skills</h2>
-        <ul class="chip-list">
-          <li class="chip">TypeScript</li>
-          <li class="chip">React</li>
-          <li class="chip">Node.js</li>
-          <li class="chip">GAS</li>
-          <li class="chip">Python</li>
-          <li class="chip">Cloud</li>
-        </ul>
+      <section id="skills" class="view loading" data-route="skills" aria-label="Skills">
+        <h2 class="section-title">スキル</h2>
+        <div class="loading-indicator" aria-live="polite" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <div class="section-body">
+          <div class="skills-grid"><!-- APIから動的生成 --></div>
+        </div>
       </section>
 
-      <section id="projects" class="view" data-route="projects" aria-label="Projects">
-        <h2 class="section-title">Projects</h2>
+      <section id="career" class="view loading" data-route="career" aria-label="Career">
+        <h2 class="section-title">職務経歴</h2>
+        <div class="loading-indicator" aria-live="polite" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <div class="section-body">
         <div class="grid">
           <article class="card reveal-on-scroll">
             <div class="card-body">
-              <h3 class="card-title">Project One</h3>
-              <p class="card-text">Brief description of what this project solves and the stack used.</p>
-            </div>
-            <div class="card-actions">
-              <a class="btn small" href="#" target="_blank" rel="noopener">Live</a>
-              <a class="btn small ghost" href="#" target="_blank" rel="noopener">Code</a>
-            </div>
-          </article>
-          <article class="card reveal-on-scroll" style="--d: 0.05s">
-            <div class="card-body">
-              <h3 class="card-title">Project Two</h3>
-              <p class="card-text">Another example project. Replace with your real work and links.</p>
-            </div>
-            <div class="card-actions">
-              <a class="btn small" href="#" target="_blank" rel="noopener">Live</a>
-              <a class="btn small ghost" href="#" target="_blank" rel="noopener">Code</a>
+              <div class="badge">2019 — 2022</div>
+              <h3 class="card-title">フロントエンドエンジニア</h3>
+              <div class="subtitle muted">toC向けWebサービス / インターネット業界</div>
+              <ul class="desc-list">
+                <li>フロント設計・実装・運用</li>
+                <li>パフォーマンス/アクセシビリティ改善</li>
+                <li>デザインシステム導入</li>
+              </ul>
+              <div class="meta-line"><strong>言語:</strong> TypeScript、 JavaScript</div>
+              <div class="meta-line"><strong>ツール:</strong> React、 Next.js、 Vite</div>
             </div>
           </article>
-          <article class="card reveal-on-scroll" style="--d: 0.1s">
-            <div class="card-body">
-              <h3 class="card-title">Project Three</h3>
-              <p class="card-text">Keep cards consistent and concise for a clean look.</p>
-            </div>
-            <div class="card-actions">
-              <a class="btn small" href="#" target="_blank" rel="noopener">Live</a>
-              <a class="btn small ghost" href="#" target="_blank" rel="noopener">Code</a>
-            </div>
-          </article>
+        </div>
+        </div>
+      </section>
+
+      <section id="links" class="view loading" data-route="links" aria-label="Links">
+        <h2 class="section-title">関連リンク</h2>
+        <div class="loading-indicator" aria-live="polite" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <div class="section-body">
+        <div class="grid">
+          <!-- API から動的に挿入します -->
+        </div>
         </div>
       </section>
 
       <section id="contact" class="view" data-route="contact" aria-label="Contact">
-        <h2 class="section-title">Contact</h2>
-        <p class="muted">Feel free to reach out for opportunities or collaboration.</p>
+        <h2 class="section-title">お問い合わせ</h2>
+        <p class="muted">お仕事のご相談やコラボのご連絡をお待ちしています。</p>
         <ul class="contact-list">
           <li><a href="mailto:your.name@example.com">your.name@example.com</a></li>
           <li><a href="https://github.com/your-github" target="_blank" rel="noopener">GitHub</a></li>
@@ -109,7 +121,7 @@
 
     <footer class="site-footer">
       <div class="container">
-        <small>© <span id="year"></span> Your Name</small>
+        <small>© <span id="year"></span> ねこくん</small>
       </div>
     </footer>
 

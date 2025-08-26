@@ -4,8 +4,14 @@ services:
     build:
       context: ./gas
       dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
     ports:
       - "8888:8888"
+    volumes:
+      - ./gas:/app
+      - /app/node_modules
   github-pages:
     build:
       context: .
@@ -14,4 +20,6 @@ services:
       - gas
     ports:
       - "8000:80"
-
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

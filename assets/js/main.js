@@ -1,5 +1,7 @@
 // Simple hash-based SPA router + small UX enhancements
 (function(){
+  const SITE_TITLE = 'ねこくん＠アラサーエンジニアのポートフォリオ';
+  const SECTION_JA = { home: 'ホーム', about: '自己紹介', skills: 'スキル', career: '職務経歴', links: '関連リンク', contact: 'お問い合わせ' };
   // API base from runtime config (set by GitHub Actions on Pages)
   const RUNTIME_BASE = (typeof window !== 'undefined' && window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) || '';
   // Local fallback when running via docker-compose
@@ -8,7 +10,7 @@
 
   let portfolioData = null;
   let io; // IntersectionObserver
-  const routes = ["home", "about", "skills", "projects", "contact"];
+  const routes = ["home", "about", "skills", "career", "links", "contact"];
   const views = new Map();
   const nav = document.getElementById("site-nav");
   const year = document.getElementById("year");
@@ -33,7 +35,7 @@
       el.classList.toggle("active", on);
     }
     setActiveNav(r);
-    document.title = `${capitalize(r)} — Portfolio`;
+    document.title = `${SITE_TITLE} — ${SECTION_JA[r] || r}`;
     if (window.innerWidth < 760) closeMenu();
     window.scrollTo({ top: 0, behavior: "auto" });
   }
@@ -51,9 +53,21 @@
     .then(data => {
       portfolioData = data;
       renderFromData(data);
+      // Clear loading state for API-driven sections
+      ['about','skills','career','links'].forEach(id => {
+        const sec = document.getElementById(id);
+        if (sec) sec.classList.remove('loading');
+      });
     })
     .catch(err => {
       console.warn('Failed to fetch portfolio data:', err);
+      // Show error in loading area
+      ['about','skills','career','links'].forEach(id => {
+        const sec = document.getElementById(id);
+        if (!sec) return;
+        const ind = sec.querySelector('.loading-indicator');
+        if (ind) ind.innerHTML = '<span style="color:#d00">読み込みに失敗しました。再読み込みしてください。</span>';
+      });
     });
 
   // Smooth reveal on scroll
@@ -93,11 +107,7 @@
   });
 
   function renderFromData(data){
-    // Hero
-    const heroTitle = document.querySelector('#home h1');
-    const lead = document.querySelector('#home .lead');
-    if (heroTitle) heroTitle.innerHTML = `Hello, I’m <span class="accent">${escapeHTML(data.profile?.name || 'Your Name')}</span>`;
-    if (lead) lead.textContent = `${data.profile?.title || 'Software Developer'} — ${data.profile?.summary || ''}`;
+    // Home はハードコーディングのため、API では上書きしない
 
     // Contact
     const list = document.querySelector('#contact .contact-list');
@@ -109,37 +119,82 @@
       if (linkedin) list.appendChild(li(a(linkedin, 'LinkedIn')));
     }
 
-    // Skills
-    const skillsUl = document.querySelector('#skills .chip-list');
-    if (skillsUl) {
-      skillsUl.innerHTML = '';
-      (data.skills || []).forEach(s => {
-        const liEl = document.createElement('li');
-        liEl.className = 'chip';
-        liEl.textContent = s;
-        skillsUl.appendChild(liEl);
+    // Skills (categorized)
+    const skillsWrap = document.querySelector('#skills .skills-grid');
+    if (skillsWrap) {
+      const dict = data.skills || {};
+      const order = [
+        { key: 'languages', label: '言語' },
+        { key: 'frameworks', label: 'フレームワーク' },
+        { key: 'tools', label: 'ツール' },
+        { key: 'clouds', label: 'クラウドサービス' }
+      ];
+      skillsWrap.innerHTML = '';
+      order.forEach(({key, label}) => {
+        const list = dict[key] || [];
+        const group = document.createElement('div');
+        group.className = 'skill-group reveal-on-scroll';
+        group.innerHTML = `
+          <h3 class="skill-title">${label}</h3>
+          <ul class="chip-list">${list.map((v) => `<li class=\"chip\">${escapeHTML(v)}</li>`).join('')}</ul>`;
+        skillsWrap.appendChild(group);
+        if (io) io.observe(group);
       });
     }
 
-    // Projects
-    const grid = document.querySelector('#projects .grid');
+    // Career
+    const grid = document.querySelector('#career .grid');
     if (grid) {
       grid.innerHTML = '';
-      (data.projects || []).forEach((p, i) => {
+      (data.careers || []).forEach((c, i) => {
         const card = document.createElement('article');
         card.className = 'card reveal-on-scroll';
         if (i) card.style.setProperty('--d', `${i * 0.05}s`);
+        const lines = (c.description || []).slice(0,3).map(s => `<li>${escapeHTML(s)}</li>`).join('');
+        const industry = c.industry ? `<div class=\"subtitle muted\">${escapeHTML(c.industry)}</div>` : '';
+        const langsText = (c.languages || []).map(escapeHTML).join('、 ');
+        const toolsText = (c.tools || []).map(escapeHTML).join('、 ');
+        const langsLine = langsText ? `<div class=\"meta-line\"><strong>言語:</strong> ${langsText}</div>` : '';
+        const toolsLine = toolsText ? `<div class=\"meta-line\"><strong>ツール:</strong> ${toolsText}</div>` : '';
         card.innerHTML = `
           <div class="card-body">
-            <h3 class="card-title">${escapeHTML(p.title)}</h3>
-            <p class="card-text">${escapeHTML(p.desc)}</p>
-          </div>
-          <div class="card-actions">
-            ${p.live ? `<a class="btn small" href="${escapeAttr(p.live)}" target="_blank" rel="noopener">Live</a>` : ''}
-            ${p.code ? `<a class="btn small ghost" href="${escapeAttr(p.code)}" target="_blank" rel="noopener">Code</a>` : ''}
+            ${c.period ? `<div class="badge">${escapeHTML(c.period)}</div>` : ''}
+            <h3 class="card-title">${escapeHTML(c.title || '')}</h3>
+            ${industry}
+            ${lines ? `<ul class="desc-list">${lines}</ul>` : ''}
+            ${langsLine}
+            ${toolsLine}
           </div>`;
         grid.appendChild(card);
         if (io) io.observe(card); // enable reveal animation for dynamically added
+      });
+    }
+
+    // Links
+    const linksGrid = document.querySelector('#links .grid');
+    if (linksGrid) {
+      linksGrid.innerHTML = '';
+      (data.links || []).forEach((l, i) => {
+        const card = document.createElement('article');
+        card.className = 'card reveal-on-scroll';
+        if (i) card.style.setProperty('--d', `${i * 0.05}s`);
+        const img = escapeAttr(l.image || 'assets/images/nekokun.jpeg');
+        const title = escapeHTML(l.title || 'リンク');
+        const desc = escapeHTML(l.desc || '関連リンク');
+        const href = escapeAttr(l.href || '#');
+        card.innerHTML = `
+          <a class="card-media" href="${href}" target="_blank" rel="noopener">
+            <img src="${img}" alt="${title}" />
+          </a>
+          <div class="card-body">
+            <h3 class="card-title">${title}</h3>
+            <p class="card-text">${desc}</p>
+            <div class="card-actions">
+              <a class="btn small" href="${href}" target="_blank" rel="noopener">開く</a>
+            </div>
+          </div>`;
+        linksGrid.appendChild(card);
+        if (io) io.observe(card);
       });
     }
   }

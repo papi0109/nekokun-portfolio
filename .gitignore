@@ -46,3 +46,6 @@ Thumbs.db
 # Misc
 *.tsbuildinfo
 *.local
+
+# Google Apps Script (optional to ignore tracking updates)
+gas/.clasp.json

@@ -12,13 +12,18 @@
     "clasp:status": "clasp status",
     "clasp:deploy": "clasp deploy",
     "clasp:version": "clasp version",
-    "start": "node local-server.js"
+    "start": "node local-server.js",
+    "sync:env": "node tools/sync-clasp-from-env.mjs",
+    "deploy": "npm run clasp:version && clasp deploy -d webapp",
+    "dev": "nodemon --watch . local-server.js"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
-    "@google/clasp": "^2.4.2"
+    "@google/clasp": "^2.4.2",
+    "dotenv": "^16.4.5",
+    "nodemon": "^3.1.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
