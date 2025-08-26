@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  gas:
+    build:
+      context: ./gas
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+  github-pages:
+    build:
+      context: .
+      dockerfile: Dockerfile.pages
+    depends_on:
+      - gas
+    ports:
+      - "8000:80"
+

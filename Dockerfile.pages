@@ -1,0 +1,9 @@
+# Static GitHub Pages-like server with nginx
+FROM nginx:alpine
+
+# Copy site into nginx html root
+COPY . /usr/share/nginx/html
+
+# Basic hardening: ensure default listing off (nginx default is fine)
+EXPOSE 80
+

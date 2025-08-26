@@ -11,12 +11,17 @@
     "clasp:pull": "clasp pull",
     "clasp:status": "clasp status",
     "clasp:deploy": "clasp deploy",
-    "clasp:version": "clasp version"
+    "clasp:version": "clasp version",
+    "start": "node local-server.js"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
     "@google/clasp": "^2.4.2"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
   }
 }
