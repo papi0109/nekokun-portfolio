@@ -86,6 +86,20 @@ const data = {
     { title: 'Blog', desc: '技術メモや発信', href: '#', image: 'assets/images/nekokun.jpeg' },
     { title: 'X(Twitter)', desc: '日々のつぶやき', href: '#', image: 'assets/images/nekokun.jpeg' }
   ]
+  ,
+  hobbies: [
+    { title: 'スプラトゥーン3', code: 'SW-1234-5678-9012', desc: 'ナワバリ・サーモンラン中心。気軽に誘ってください。', image: 'assets/images/nekokun.jpeg' },
+    { title: '原神', code: 'UID: 800000000', desc: '探索と撮影が好き。のんびり勢です。', image: 'assets/images/nekokun.jpeg' },
+    { title: 'FF14', code: 'Ridill / Nekokun', desc: '極～零式たまに行きます。ギャザクラも嗜みます。', image: 'assets/images/nekokun.jpeg' },
+    { title: 'ポケモンSV', code: 'SW-2222-3333-4444', desc: 'レイド・育成・図鑑埋めなど。', image: 'assets/images/nekokun.jpeg' }
+  ]
+  ,
+  works: [
+    { title: 'ポートフォリオサイト', desc: '本サイト一式（SPA/Pages/GAS）', href: '#', image: 'assets/images/nekokun.jpeg' },
+    { title: '管理ツール', desc: 'GAS + スプレッドシート自動化', href: '#', image: 'assets/images/nekokun.jpeg' },
+    { title: 'UI コンポーネント', desc: 'React コンポーネントのミニライブラリ', href: '#', image: 'assets/images/nekokun.jpeg' },
+    { title: 'API サンプル', desc: 'Node/Express のサンプルAPI', href: '#', image: 'assets/images/nekokun.jpeg' }
+  ]
 };
 
 app.get('/api/portfolio', (req, res) => {

@@ -1,7 +1,7 @@
 // Simple hash-based SPA router + small UX enhancements
 (function(){
   const SITE_TITLE = 'ねこくん＠アラサーエンジニアのポートフォリオ';
-  const SECTION_JA = { home: 'ホーム', about: '自己紹介', skills: 'スキル', career: '職務経歴', links: '関連リンク', contact: 'お問い合わせ' };
+  const SECTION_JA = { home: 'ホーム', about: '自己紹介', skills: 'スキル', career: '職務経歴', works: '作品集', hobby: '趣味' };
   // API base from runtime config (set by GitHub Actions on Pages)
   const RUNTIME_BASE = (typeof window !== 'undefined' && window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) || '';
   // Local fallback when running via docker-compose
@@ -10,7 +10,7 @@
 
   let portfolioData = null;
   let io; // IntersectionObserver
-  const routes = ["home", "about", "skills", "career", "links", "contact"];
+  const routes = ["home", "about", "skills", "career", "works", "hobby"];
   const views = new Map();
   const nav = document.getElementById("site-nav");
   const year = document.getElementById("year");
@@ -54,7 +54,7 @@
       portfolioData = data;
       renderFromData(data);
       // Clear loading state for API-driven sections
-      ['about','skills','career','links'].forEach(id => {
+      ['about','skills','career','hobby','works'].forEach(id => {
         const sec = document.getElementById(id);
         if (sec) sec.classList.remove('loading');
       });
@@ -62,7 +62,7 @@
     .catch(err => {
       console.warn('Failed to fetch portfolio data:', err);
       // Show error in loading area
-      ['about','skills','career','links'].forEach(id => {
+      ['about','skills','career','hobby','works'].forEach(id => {
         const sec = document.getElementById(id);
         if (!sec) return;
         const ind = sec.querySelector('.loading-indicator');
@@ -109,15 +109,7 @@
   function renderFromData(data){
     // Home はハードコーディングのため、API では上書きしない
 
-    // Contact
-    const list = document.querySelector('#contact .contact-list');
-    if (list) {
-      list.innerHTML = '';
-      const { email, github, linkedin } = data.profile?.contacts || {};
-      if (email) list.appendChild(li(a(`mailto:${email}`, email)));
-      if (github) list.appendChild(li(a(github, 'GitHub')));
-      if (linkedin) list.appendChild(li(a(linkedin, 'LinkedIn')));
-    }
+    // Contact section removed; Home has X link
 
     // Skills (categorized)
     const skillsWrap = document.querySelector('#skills .skills-grid');
@@ -170,18 +162,59 @@
       });
     }
 
-    // Links
-    const linksGrid = document.querySelector('#links .grid');
-    if (linksGrid) {
-      linksGrid.innerHTML = '';
-      (data.links || []).forEach((l, i) => {
+    // About - absorb related links as a bullet list (no descriptions)
+    const aboutLinks = document.querySelector('#about .link-list');
+    if (aboutLinks) {
+      aboutLinks.innerHTML = '';
+      (data.links || []).forEach(l => {
+        if (!l || !l.href) return;
+        const liEl = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = l.href; link.target = '_blank'; link.rel = 'noopener';
+        link.textContent = l.title || l.href;
+        liEl.appendChild(link);
+        aboutLinks.appendChild(liEl);
+      });
+    }
+
+    // Hobby - cards with image and friend code
+    const hobbyGrid = document.querySelector('#hobby .grid');
+    if (hobbyGrid) {
+      hobbyGrid.innerHTML = '';
+      (data.hobbies || []).forEach((h, i) => {
         const card = document.createElement('article');
         card.className = 'card reveal-on-scroll';
         if (i) card.style.setProperty('--d', `${i * 0.05}s`);
-        const img = escapeAttr(l.image || 'assets/images/nekokun.jpeg');
-        const title = escapeHTML(l.title || 'リンク');
-        const desc = escapeHTML(l.desc || '関連リンク');
-        const href = escapeAttr(l.href || '#');
+        const img = escapeAttr(h.image || 'assets/images/nekokun.jpeg');
+        const title = escapeHTML(h.title || 'ゲーム');
+        const code = escapeHTML(h.code || '');
+        const desc = h.desc ? `<p class=\"card-text clamp-2\">${escapeHTML(h.desc)}</p>` : '';
+        card.innerHTML = `
+          <div class="card-media">
+            <img src="${img}" alt="${title}" />
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">${title}</h3>
+            ${code ? `<p class="card-text">フレンドコード: ${code}</p>` : ''}
+            ${desc}
+          </div>`;
+        hobbyGrid.appendChild(card);
+        if (io) io.observe(card);
+      });
+    }
+
+    // Works
+    const worksGrid = document.querySelector('#works .grid');
+    if (worksGrid) {
+      worksGrid.innerHTML = '';
+      (data.works || []).forEach((w, i) => {
+        const card = document.createElement('article');
+        card.className = 'card reveal-on-scroll';
+        if (i) card.style.setProperty('--d', `${i * 0.05}s`);
+        const img = escapeAttr(w.image || 'assets/images/nekokun.jpeg');
+        const title = escapeHTML(w.title || '作品');
+        const desc = escapeHTML(w.desc || '作品の説明');
+        const href = escapeAttr(w.href || '#');
         card.innerHTML = `
           <a class="card-media" href="${href}" target="_blank" rel="noopener">
             <img src="${img}" alt="${title}" />
@@ -193,7 +226,7 @@
               <a class="btn small" href="${href}" target="_blank" rel="noopener">開く</a>
             </div>
           </div>`;
-        linksGrid.appendChild(card);
+        worksGrid.appendChild(card);
         if (io) io.observe(card);
       });
     }

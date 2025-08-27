@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ねこくん＠アラサーエンジニアのポートフォリオ</title>
     <meta name="description" content="ねこくん（アラサーエンジニア）のポートフォリオ。プロジェクト、スキル、連絡先。" />
+    <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/images/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
@@ -24,8 +26,8 @@
           <a href="#about" data-link>自己紹介</a>
           <a href="#skills" data-link>スキル</a>
           <a href="#career" data-link>職務経歴</a>
-          <a href="#links" data-link>関連リンク</a>
-          <a href="#contact" data-link>お問い合わせ</a>
+          <a href="#works" data-link>作品集</a>
+          <a href="#hobby" data-link>趣味</a>
         </nav>
       </div>
     </header>
@@ -41,7 +43,7 @@
             <p class="titleline reveal-on-scroll" style="--d: 0.05s">自称PM/PL・自称AIエンジニア・自称フルサイクルエンジニア</p>
             <div class="cta reveal-on-scroll" style="--d: 0.1s">
               <a class="btn primary" href="#career" data-link>職務経歴を見る</a>
-              <a class="btn ghost" href="#contact" data-link>問い合わせる</a>
+              <a class="btn ghost" href="https://x.com/nekokunaround30" target="_blank" rel="noopener">Xで問い合わせる</a>
             </div>
             <p class="note reveal-on-scroll" style="--d: 0.12s">※ このポートフォリオは設計を行い、実装の約90%を「バイブコーディング」で制作しています。</p>
           </div>
@@ -54,10 +56,18 @@
           <div class="spinner" aria-hidden="true"></div>
         </div>
         <div class="section-body">
-          <p class="muted">
-            パフォーマンスとアクセシビリティ、保守性を重視したプロダクトをつくっています。
-            型安全なコード、クリーンアーキテクチャ、心地よい UX が好きです。
-          </p>
+          <div class="about-row">
+            <div class="about-copy">
+              <p class="muted">
+                パフォーマンスとアクセシビリティ、保守性を重視したプロダクトをつくっています。
+                型安全なコード、クリーンアーキテクチャ、心地よい UX が好きです。
+              </p>
+              <ul class="link-list"><!-- APIから動的生成 --></ul>
+            </div>
+            <div class="about-media">
+              <img src="assets/images/typing_man.png" alt="タイピングする人物のイラスト" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -96,26 +106,24 @@
         </div>
       </section>
 
-      <section id="links" class="view loading" data-route="links" aria-label="Links">
-        <h2 class="section-title">関連リンク</h2>
+      <section id="hobby" class="view loading" data-route="hobby" aria-label="Hobby">
+        <h2 class="section-title">趣味</h2>
         <div class="loading-indicator" aria-live="polite" aria-busy="true">
           <div class="spinner" aria-hidden="true"></div>
         </div>
         <div class="section-body">
-        <div class="grid">
-          <!-- API から動的に挿入します -->
-        </div>
+          <div class="grid"><!-- APIから動的生成 --></div>
         </div>
       </section>
 
-      <section id="contact" class="view" data-route="contact" aria-label="Contact">
-        <h2 class="section-title">お問い合わせ</h2>
-        <p class="muted">お仕事のご相談やコラボのご連絡をお待ちしています。</p>
-        <ul class="contact-list">
-          <li><a href="mailto:your.name@example.com">your.name@example.com</a></li>
-          <li><a href="https://github.com/your-github" target="_blank" rel="noopener">GitHub</a></li>
-          <li><a href="https://www.linkedin.com/in/your-linkedin" target="_blank" rel="noopener">LinkedIn</a></li>
-        </ul>
+      <section id="works" class="view loading" data-route="works" aria-label="Works">
+        <h2 class="section-title">作品集</h2>
+        <div class="loading-indicator" aria-live="polite" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+        <div class="section-body">
+          <div class="grid"><!-- APIから動的生成 --></div>
+        </div>
       </section>
     </main>
 

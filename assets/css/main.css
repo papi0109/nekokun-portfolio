@@ -5,10 +5,10 @@
 */
 
 :root{
-  --bg: #ffffff;
+  --bg: #f3f4f6; /* light neutral to separate white cards */
   --text: #121212;
   --muted: #616161;
-  --border: #eaeaea;
+  --border: #e1e5eb;
   --primary: #4f46e5; /* indigo */
   --primary-ink: #4338ca;
   --shadow: 0 8px 30px rgba(0,0,0,.06);
@@ -74,10 +74,11 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 .hero{ padding: 52px 24px; background: linear-gradient(180deg, #fff, #fafafa); border:1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow) }
 .hero-inner{ display:grid; grid-template-columns: 1fr; gap:24px; align-items:center }
 .hero h1{ font-size: clamp(28px, 6vw, 44px); line-height:1.2; margin: 0 0 8px }
-.titleline{ font-size: clamp(15px, 2.2vw, 18px); color:#222; margin: 2px 0 8px; font-weight: 600 }
+.titleline{ font-size: clamp(15px, 2.2vw, 18px); color:#222; margin: 2px 0 16px; font-weight: 600 }
 .lead{ font-size: clamp(16px, 2.5vw, 20px); color:var(--muted); margin: 0 0 18px }
 .note{ font-size: 12.5px; color: var(--muted); margin: 16px 0 0; padding-top: 10px; border-top: 1px dashed var(--border) }
 .cta{ display:flex; gap:12px; flex-wrap:wrap }
+.hero .cta{ margin-top:32px }
 .accent{ color: var(--primary) }
 
 .hero-media{ display:flex; justify-content:center }
@@ -92,6 +93,16 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 
 .section-title{ font-size: 28px; margin: 24px 0 }
 .muted{ color:var(--muted) }
+/* About two-column */
+.about-row{ display:flex; flex-direction: column-reverse; gap:32px; align-items:stretch; margin-top:6px }
+.about-media img{ width:70%; height:auto; margin-inline:auto; border-radius:0; border:none; box-shadow:none }
+@media (min-width: 900px){
+  .about-row{ display:grid; grid-template-columns: 1fr 360px; align-items:center }
+  .about-media img{ width:100%; margin:0 }
+}
+/* About links */
+.link-list{ margin: 12px 0 0; padding-left: 18px }
+.link-list li{ margin: 6px 0 }
 /* Skills */
 .skills-grid{ display:grid; gap:18px; grid-template-columns: 1fr }
 .skill-group{ border:1px solid var(--border); border-radius: 12px; padding:14px; background:#fff; box-shadow: var(--shadow) }
@@ -123,6 +134,7 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 .card-body{ padding:16px }
 .card-title{ margin:0 0 8px; font-size:20px }
 .card-text{ color:var(--muted); margin:0 0 12px }
+.clamp-2{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden }
 .card-actions{ display:flex; gap:10px; padding:0 16px 16px }
 
 /* Career */
