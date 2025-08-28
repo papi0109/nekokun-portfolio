@@ -10,6 +10,7 @@
 
   let portfolioData = null;
   let io; // IntersectionObserver
+  let toggle = null; // mobile nav toggle
   const routes = ["home", "about", "skills", "career", "works", "hobby"];
   const views = new Map();
   const nav = document.getElementById("site-nav");
@@ -34,6 +35,17 @@
       const on = key === r;
       el.classList.toggle("active", on);
     }
+    // Home tagline animation: reset and trigger stagger on home only
+    const titleList = document.querySelector('#home .titleline-list');
+    if (titleList){
+      titleList.classList.remove('show');
+      if (r === 'home'){
+        // Force reflow to restart animation
+        void titleList.offsetWidth;
+        titleList.classList.add('show');
+      }
+    }
+    document.body.setAttribute('data-route', r);
     setActiveNav(r);
     document.title = `${SITE_TITLE} — ${SECTION_JA[r] || r}`;
     if (window.innerWidth < 760) closeMenu();
@@ -44,8 +56,19 @@
 
   // Router: hashchange + initial load
   function currentRoute(){ return (location.hash || "#home").replace(/^#/, ""); }
-  window.addEventListener("hashchange", () => show(currentRoute()));
+  window.addEventListener("hashchange", () => { show(currentRoute()); updateBackToTop(); });
   show(currentRoute());
+  // Back-to-top visibility update setup
+  const backBtn = document.getElementById('backToTop');
+  function updateBackToTop(){
+    if (!backBtn) return;
+    const shouldShow = window.scrollY > 200;
+    backBtn.classList.toggle('show', shouldShow);
+    backBtn.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+  }
+  window.addEventListener('scroll', updateBackToTop, { passive: true });
+  backBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  updateBackToTop();
 
   // Fetch portfolio data once on first load and render sections
   fetch(`${API_BASE}/api/portfolio`, { method: 'GET' })
@@ -82,14 +105,17 @@
   document.querySelectorAll(".reveal-on-scroll").forEach(el => io.observe(el));
 
   // Mobile navigation toggle
-  const toggle = document.querySelector(".nav-toggle");
+  toggle = document.querySelector(".nav-toggle");
   function closeMenu(){
-    toggle?.setAttribute("aria-expanded", "false");
+    // Query on demand to avoid TDZ issues on initial load
+    const t = toggle || document.querySelector(".nav-toggle");
+    t?.setAttribute("aria-expanded", "false");
     nav?.classList.remove("open");
   }
   toggle?.addEventListener("click", () => {
-    const open = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", String(!open));
+    const t = toggle || document.querySelector(".nav-toggle");
+    const open = t?.getAttribute("aria-expanded") === "true";
+    t?.setAttribute("aria-expanded", String(!open));
     nav?.classList.toggle("open", !open);
   });
 

@@ -37,6 +37,20 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 .brand{ display:flex; align-items:center; gap:10px; font-weight:700; color:inherit }
 .brand-mark{ font-size:20px; color:var(--primary) }
 .brand-text{ letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:min(60vw, 560px) }
+.brand-text{ display:inline-flex; align-items:center }
+.brand{ position:relative }
+.brand .tooltip{
+  position:absolute; left:0; top:calc(100% + 6px); z-index:30;
+  background:#111; color:#fff; font-size:12px; padding:6px 8px; border-radius:6px; white-space:nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.18);
+  opacity:0; transform: translateY(-4px); pointer-events:none; transition: opacity .2s ease, transform .2s ease;
+}
+.brand .tooltip::before{ content:""; position:absolute; left:14px; top:-6px; border:6px solid transparent; border-bottom-color:#111 }
+.brand:hover .tooltip{ opacity:1; transform:none }
+/* Hide tooltip on home route */
+body[data-route="home"] .brand:hover .tooltip{ opacity:0; pointer-events:none }
+@media (max-width: 760px){
+  .brand .tooltip{ display:none !important }
+}
 
 .site-nav{ display:flex; gap:20px; align-items:center; transition: opacity .25s ease, transform .25s ease }
 .site-nav a{ position:relative; color:inherit; opacity:.85; padding:6px 2px; transition: color .2s ease, opacity .2s ease, transform .2s ease }
@@ -61,6 +75,11 @@ a:hover{color:var(--primary-ink); text-decoration:none}
     opacity:0; transform: translateY(-6px); pointer-events:none; visibility:hidden;
   }
   .site-nav.open{ opacity:1; transform:none; pointer-events:auto; visibility:visible }
+  .site-nav a{ display:block; width:100%; padding:12px 6px }
+  .site-nav a::after{ display:none }
+  .site-nav a:hover{ background:#f8fafc; transform:none }
+  /* Smaller hero title on mobile */
+  .hero h1{ font-size: clamp(18px, 4.5vw, 30px) }
 }
 
 /* Views */
@@ -77,7 +96,7 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 .titleline{ font-size: clamp(15px, 2.2vw, 18px); color: var(--muted); margin: 2px 0 16px; font-weight: 600 }
 /* Hero tagline as list */
 .titleline-list{ list-style: disc; padding-left: 1.2rem; margin: 0 0 16px; color:#9aa0a6; font-weight:600; font-size: clamp(12px, 1.8vw, 14px) }
-.titleline-list li{ margin: 2px 0; color: inherit }
+.titleline-list li{ margin: 2px 0; color: inherit; opacity:0; transform: translateX(-10px) }
 
 .titleline-lead{ color:#9aa0a6; margin: 16px 0 0; font-size: clamp(12px, 1.8vw, 14px); font-weight: 600 }
 .lead{ font-size: clamp(16px, 2.5vw, 20px); color:var(--muted); margin: 0 0 18px }
@@ -163,6 +182,13 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 .spinner{ width:20px; height:20px; border-radius:50%; border:2px solid #e5e7eb; border-top-color: var(--primary); animation: spin .8s linear infinite }
 @keyframes spin{ to{ transform: rotate(360deg) } }
 
+/* Tagline stagger animation */
+@keyframes titleline-in{ from{ opacity:0; transform: translateX(-10px) } to{ opacity:1; transform:none } }
+.titleline-list.show li{ animation: titleline-in .55s ease forwards }
+.titleline-list.show li:nth-child(1){ animation-delay: .2s }
+.titleline-list.show li:nth-child(2){ animation-delay: .4s }
+.titleline-list.show li:nth-child(3){ animation-delay: .6s }
+
 /* Animations */
 @keyframes fade-up{ from{ opacity:0; transform: translateY(8px) } to{ opacity:1; transform:none } }
 
@@ -171,3 +197,20 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 
 /* Utilities */
 .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+
+/* Mobile overrides (placed after base rules to win cascade) */
+@media (max-width: 760px){
+  .hero h1{ font-size: 22px }
+}
+
+/* Back to top floating button */
+.back-to-top{
+  position: fixed; right: 18px; bottom: 18px; z-index: 20;
+  width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--primary); color:#fff; box-shadow: var(--shadow);
+  display: grid; place-items: center; cursor: pointer;
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+.back-to-top:hover{ background: var(--primary-ink) }
+.back-to-top.show{ opacity: 1; transform: none; pointer-events: auto }
