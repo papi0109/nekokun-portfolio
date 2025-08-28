@@ -74,7 +74,12 @@ a:hover{color:var(--primary-ink); text-decoration:none}
 .hero{ padding: 52px 24px; background: linear-gradient(180deg, #fff, #fafafa); border:1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow) }
 .hero-inner{ display:grid; grid-template-columns: 1fr; gap:24px; align-items:center }
 .hero h1{ font-size: clamp(28px, 6vw, 44px); line-height:1.2; margin: 0 0 8px }
-.titleline{ font-size: clamp(15px, 2.2vw, 18px); color:#222; margin: 2px 0 16px; font-weight: 600 }
+.titleline{ font-size: clamp(15px, 2.2vw, 18px); color: var(--muted); margin: 2px 0 16px; font-weight: 600 }
+/* Hero tagline as list */
+.titleline-list{ list-style: disc; padding-left: 1.2rem; margin: 0 0 16px; color:#9aa0a6; font-weight:600; font-size: clamp(12px, 1.8vw, 14px) }
+.titleline-list li{ margin: 2px 0; color: inherit }
+
+.titleline-lead{ color:#9aa0a6; margin: 16px 0 0; font-size: clamp(12px, 1.8vw, 14px); font-weight: 600 }
 .lead{ font-size: clamp(16px, 2.5vw, 20px); color:var(--muted); margin: 0 0 18px }
 .note{ font-size: 12.5px; color: var(--muted); margin: 16px 0 0; padding-top: 10px; border-top: 1px dashed var(--border) }
 .cta{ display:flex; gap:12px; flex-wrap:wrap }

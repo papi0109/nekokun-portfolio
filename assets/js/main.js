@@ -1,7 +1,7 @@
 // Simple hash-based SPA router + small UX enhancements
 (function(){
-  const SITE_TITLE = 'ねこくん＠アラサーエンジニアのポートフォリオ';
-  const SECTION_JA = { home: 'ホーム', about: '自己紹介', skills: 'スキル', career: '職務経歴', works: '作品集', hobby: '趣味' };
+  const SITE_TITLE = "Nekokun's portfolio!";
+  const SECTION_JA = { home: 'Home', about: 'Profile', skills: 'Skills', career: 'Career', works: 'Works', hobby: 'Favorites' };
   // API base from runtime config (set by GitHub Actions on Pages)
   const RUNTIME_BASE = (typeof window !== 'undefined' && window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) || '';
   // Local fallback when running via docker-compose
