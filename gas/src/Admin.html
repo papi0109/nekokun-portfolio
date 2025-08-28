@@ -1,0 +1,68 @@
+<?!= include('AdminCSS'); ?>
+<div class="adm">
+  <header class="hdr">
+    <div class="brand">Admin Console (GAS)</div>
+    <div class="row">
+      <input id="pw" type="password" placeholder="Password" />
+      <button id="reload">Reload</button>
+      <button id="save" class="primary">Save All</button>
+      <span id="msg" class="msg"></span>
+    </div>
+  </header>
+  <main class="main">
+    <div class="tabs">
+      <button data-tab="profile" class="active">Profile</button>
+      <button data-tab="skills">Skills</button>
+      <button data-tab="career">Career</button>
+      <button data-tab="works">Works</button>
+      <button data-tab="hobbies">Hobbies</button>
+    </div>
+    <section class="panel">
+      <div data-page="profile" class="page active">
+        <h3>About Text</h3>
+        <textarea id="about_text" placeholder="Self introduction"></textarea>
+        <h3>Links (title + URL)</h3>
+        <div id="links" class="list"></div>
+        <button data-add="link">+ Add Link</button>
+      </div>
+
+      <div data-page="skills" class="page">
+        <div class="grid">
+          <div>
+            <h3>Languages</h3>
+            <textarea id="skills_languages" placeholder="one per line"></textarea>
+          </div>
+          <div>
+            <h3>Frameworks</h3>
+            <textarea id="skills_frameworks" placeholder="one per line"></textarea>
+          </div>
+          <div>
+            <h3>Tools</h3>
+            <textarea id="skills_tools" placeholder="one per line"></textarea>
+          </div>
+          <div>
+            <h3>Cloud services</h3>
+            <textarea id="skills_clouds" placeholder="one per line"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div data-page="career" class="page">
+        <div id="careers" class="cards"></div>
+        <button data-add="career">+ Add Career</button>
+      </div>
+
+      <div data-page="works" class="page">
+        <div id="works" class="cards"></div>
+        <button data-add="work">+ Add Work</button>
+      </div>
+
+      <div data-page="hobbies" class="page">
+        <div id="hobbies" class="cards"></div>
+        <button data-add="hobby">+ Add Hobby</button>
+      </div>
+    </section>
+  </main>
+</div>
+<?!= include('AdminJS'); ?>
+

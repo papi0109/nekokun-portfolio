@@ -1,0 +1,29 @@
+<style>
+  :root{ --border:#e5e7eb; --muted:#6b7280; --primary:#4f46e5 }
+  html,body{ height:100% }
+  body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#f7f7f9 }
+  .adm{ max-width:1100px; margin:auto }
+  .hdr{ position:sticky; top:0; z-index:5; background:#fff; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 16px }
+  .brand{ font-weight:700 }
+  .row{ display:flex; gap:10px; align-items:center }
+  input, textarea{ border:1px solid var(--border); border-radius:8px; padding:8px 10px; font:inherit; background:#fff }
+  #pw{ width:180px }
+  button{ padding:8px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer }
+  button.primary{ background:var(--primary); color:#fff; border-color:transparent }
+  .msg{ min-height:20px; font-size:12px }
+  .ok{ color:#0a0 } .err{ color:#a00 }
+  .main{ display:grid; grid-template-columns:260px 1fr; gap:16px; padding:16px }
+  .tabs{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px; height:max-content }
+  .tabs button{ width:100%; text-align:left; border:0; padding:10px 12px; border-radius:8px }
+  .tabs button.active{ background:#eef2ff; color:#1d4ed8 }
+  .panel{ background:#fff; border:1px solid var(--border); border-radius:12px; padding:16px }
+  .page{ display:none } .page.active{ display:block }
+  .list .item, .cards .item{ border:1px dashed var(--border); border-radius:10px; padding:12px; background:#fff; margin:8px 0 }
+  .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px }
+  .two{ display:grid; grid-template-columns: 1fr 1fr; gap:12px }
+  label{ font-size:12px; color:var(--muted) }
+  .inline{ display:flex; gap:10px; align-items:center }
+  .item .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px }
+  @media (max-width: 900px){ .main{ grid-template-columns: 1fr } .grid, .two{ grid-template-columns: 1fr } }
+</style>
+

@@ -1,110 +1,175 @@
 /**
- * Google Apps Script Web App endpoint (GET only).
- * Returns portfolio data as JSON. Initially hard-coded, mirroring local-server.js.
- */
-
-/**
- * GET handler
- * @param {GoogleAppsScript.Events.DoGet} e
- * @return {GoogleAppsScript.Content.TextOutput}
+ * Spreadsheet-backed Web App for portfolio data.
+ * - doGet: returns JSON assembled from sheets
+ * - doPost: accepts { password, data } to overwrite sheets
  */
 function doGet(e) {
-  var data = getPortfolioData_();
-  return ContentService
-    .createTextOutput(JSON.stringify(data))
+  ensureSpreadsheet_();
+  // Admin UI: serve HTML when `?admin=1`
+  if (e && e.parameter && e.parameter.admin === '1') {
+    const tpl = HtmlService.createTemplateFromFile('Admin');
+    return tpl.evaluate()
+      .setTitle('Admin Console')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+  // API JSON
+  const data = readAll_();
+  return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * Hard-coded portfolio data.
- * Replace with your real content or a Spreadsheet/Docs source.
- * @return {Object}
- */
-function getPortfolioData_() {
-  return {
-    profile: {
-      name: 'ねこくん',
-      title: '自称PM/PL・自称AIエンジニア・自称フルサイクルエンジニア',
-      summary: 'パフォーマンスと開発体験を重視し、クリーンでアクセシブル、保守しやすい Web をつくります。',
-      contacts: {
-        email: 'your.name@example.com',
-        github: 'https://github.com/your-github',
-        linkedin: 'https://www.linkedin.com/in/your-linkedin'
-      }
-    },
-    skills: {
-      languages: ['TypeScript', 'JavaScript', 'Python'],
-      frameworks: ['React', 'Next.js', 'Fastify'],
-      tools: ['Git', 'Docker', 'Terraform'],
-      clouds: ['GCP', 'Vercel', 'Cloudflare']
-    },
-    careers: [
-      {
-        period: '2019 — 2020',
-        title: 'フロントエンドエンジニア',
-        industry: 'toC向けWebサービス / インターネット業界',
-        description: [
-          'フロント設計・実装・運用',
-          'パフォーマンス/アクセシビリティ改善',
-          'デザインシステム導入'
-        ],
-        languages: ['TypeScript', 'JavaScript'],
-        tools: ['React', 'Next.js', 'Vite']
-      },
-      {
-        period: '2020 — 2021',
-        title: 'バックエンドエンジニア',
-        industry: 'SaaS / B2B',
-        description: [
-          'BFF/API 設計・実装',
-          '監視・アラート整備',
-          'DB チューニング'
-        ],
-        languages: ['TypeScript', 'Python'],
-        tools: ['Node.js', 'Fastify', 'PostgreSQL']
-      },
-      {
-        period: '2021 — 2022',
-        title: 'DevOps エンジニア',
-        industry: 'クラウド / SRE',
-        description: [
-          'CI/CD パイプライン整備',
-          'IaC による構成管理',
-          'コンテナ運用'
-        ],
-        languages: ['Bash', 'TypeScript'],
-        tools: ['Docker', 'Terraform', 'GitHub Actions']
-      },
-      {
-        period: '2022 — 2024',
-        title: 'フルスタックエンジニア',
-        industry: '業務システム / 内製開発',
-        description: [
-          'GAS による社内自動化',
-          'フロント〜APIまで一貫開発',
-          '品質改善と運用効率化'
-        ],
-        languages: ['TypeScript', 'Python'],
-        tools: ['GAS', 'Node.js', 'Docker']
-      }
-    ],
-    links: [
-      { title: 'GitHub', desc: 'コードとリポジトリはこちら', href: 'https://github.com/your-github', image: 'assets/images/nekokun.jpeg' },
-      { title: 'LinkedIn', desc: '職務経歴とネットワーク', href: 'https://www.linkedin.com/in/your-linkedin', image: 'assets/images/nekokun.jpeg' },
-      { title: 'Blog', desc: '技術メモや発信', href: '#', image: 'assets/images/nekokun.jpeg' },
-      { title: 'X(Twitter)', desc: '日々のつぶやき', href: '#', image: 'assets/images/nekokun.jpeg' }
-    ],
-    hobbies: [
-      { title: 'スプラトゥーン3', code: 'SW-1234-5678-9012', desc: 'ナワバリ・サーモンラン中心。気軽に誘ってください。', image: 'assets/images/nekokun.jpeg' },
-      { title: '原神', code: 'UID: 800000000', desc: '探索と撮影が好き。のんびり勢です。', image: 'assets/images/nekokun.jpeg' },
-      { title: 'FF14', code: 'Ridill / Nekokun', desc: '極～零式たまに行きます。ギャザクラも嗜みます。', image: 'assets/images/nekokun.jpeg' },
-      { title: 'ポケモンSV', code: 'SW-2222-3333-4444', desc: 'レイド・育成・図鑑埋めなど。', image: 'assets/images/nekokun.jpeg' }
-    ],
-    works: [
-      { title: 'ポートフォリオサイト', desc: '本サイト一式（SPA/Pages/GAS）', href: '#', image: 'assets/images/nekokun.jpeg' },
-      { title: '管理ツール', desc: 'GAS + スプレッドシート自動化', href: '#', image: 'assets/images/nekokun.jpeg' },
-      { title: 'UI コンポーネント', desc: 'React コンポーネントのミニライブラリ', href: '#', image: 'assets/images/nekokun.jpeg' },
-      { title: 'API サンプル', desc: 'Node/Express のサンプルAPI', href: '#', image: 'assets/images/nekokun.jpeg' }
-    ]
+function doPost(e) {
+  ensureSpreadsheet_();
+  const pw = getAdminPassword_();
+  let body = null;
+  try {
+    body = e && e.postData && e.postData.contents ? JSON.parse(e.postData.contents) : null;
+  } catch(_) {}
+  const passParam = (body && (body.password || (body.data && body.data.password))) || (e && e.parameter && e.parameter.password);
+  if (!pw || passParam !== pw){
+    return ContentService.createTextOutput(JSON.stringify({ error:'Unauthorized' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  const data = (body && (body.data || body)) || {};
+  saveAll_(data);
+  const out = readAll_();
+  return ContentService.createTextOutput(JSON.stringify({ ok:true, data: out }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+const SHEETS = {
+  ABOUT: { name:'about', headers:['text'] },
+  LINKS: { name:'links', headers:['title','href'] },
+  SK_LANG: { name:'skills_languages', headers:['value'] },
+  SK_FW: { name:'skills_frameworks', headers:['value'] },
+  SK_TOOLS: { name:'skills_tools', headers:['value'] },
+  SK_CLOUDS: { name:'skills_clouds', headers:['value'] },
+  CAREERS: { name:'careers', headers:['period','title','industry','description','languages','tools'] },
+  HOBBIES: { name:'hobbies', headers:['title','code','desc','image'] },
+  WORKS: { name:'works', headers:['title','desc','href','image'] }
+};
+
+function ensureSpreadsheet_(){
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('SPREADSHEET_ID');
+  let ss;
+  if (id){ try{ ss = SpreadsheetApp.openById(id); }catch(err){} }
+  if (!ss){
+    ss = SpreadsheetApp.create('Nekokun Portfolio Data');
+    props.setProperty('SPREADSHEET_ID', ss.getId());
+  }
+  Object.keys(SHEETS).forEach(function(key){
+    const meta = SHEETS[key];
+    const sh = ss.getSheetByName(meta.name) || ss.insertSheet(meta.name);
+    const range = sh.getRange(1,1,1,meta.headers.length);
+    const values = range.getValues()[0];
+    const needHeader = values.filter(String).length === 0;
+    if (needHeader){ range.setValues([meta.headers]); }
+  });
+}
+
+function getSheet_(name){
+  const id = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
+  const ss = SpreadsheetApp.openById(id);
+  return ss.getSheetByName(name);
+}
+
+function readTable_(name, headers){
+  const sh = getSheet_(name);
+  const last = sh.getLastRow();
+  if (last < 2) return [];
+  const rng = sh.getRange(2,1,last-1, headers.length);
+  const rows = rng.getValues();
+  return rows.map(function(r){
+    const obj = {};
+    headers.forEach(function(h, i){ obj[h] = (r[i] !== null && r[i] !== undefined) ? String(r[i]) : ''; });
+    return obj;
+  }).filter(function(o){ return headers.some(function(h){ return (o[h]||'').trim() !== ''; }); });
+}
+
+function writeTable_(name, headers, rows){
+  const sh = getSheet_(name);
+  sh.clearContents();
+  if (!rows || rows.length === 0){
+    sh.getRange(1,1,1,headers.length).setValues([headers]);
+    return;
+  }
+  const values = rows.map(function(o){ return headers.map(function(h){ return o[h] || ''; }); });
+  sh.getRange(1,1,values.length+1, headers.length).setValues([headers].concat(values));
+}
+
+function readAll_(){
+  const out = {};
+  out.profile = { name:'', title:'', summary:'', contacts:{} }; // reserved
+  out.about = { text: '' };
+  const aboutRows = readTable_(SHEETS.ABOUT.name, SHEETS.ABOUT.headers);
+  if (aboutRows[0]) out.about.text = aboutRows[0].text || '';
+  out.links = readTable_(SHEETS.LINKS.name, SHEETS.LINKS.headers).map(function(r){ return { title:r.title, href:r.href }; });
+  out.skills = {
+    languages: readTable_(SHEETS.SK_LANG.name, SHEETS.SK_LANG.headers).map(function(r){ return r.value; }),
+    frameworks: readTable_(SHEETS.SK_FW.name, SHEETS.SK_FW.headers).map(function(r){ return r.value; }),
+    tools: readTable_(SHEETS.SK_TOOLS.name, SHEETS.SK_TOOLS.headers).map(function(r){ return r.value; }),
+    clouds: readTable_(SHEETS.SK_CLOUDS.name, SHEETS.SK_CLOUDS.headers).map(function(r){ return r.value; })
   };
+  out.careers = readTable_(SHEETS.CAREERS.name, SHEETS.CAREERS.headers).map(function(r){
+    return {
+      period: r.period,
+      title: r.title,
+      industry: r.industry,
+      description: (r.description||'').split(';').filter(String),
+      languages: (r.languages||'').split(';').filter(String),
+      tools: (r.tools||'').split(';').filter(String)
+    };
+  });
+  out.hobbies = readTable_(SHEETS.HOBBIES.name, SHEETS.HOBBIES.headers).map(function(r){ return { title:r.title, code:r.code, desc:r.desc, image:r.image }; });
+  out.works = readTable_(SHEETS.WORKS.name, SHEETS.WORKS.headers).map(function(r){ return { title:r.title, desc:r.desc, href:r.href, image:r.image }; });
+  return out;
+}
+
+function saveAll_(data){
+  data = data || {};
+  writeTable_(SHEETS.ABOUT.name, SHEETS.ABOUT.headers, [{ text: (data.about && data.about.text) || '' }]);
+  writeTable_(SHEETS.LINKS.name, SHEETS.LINKS.headers, (data.links||[]).map(function(x){ return {title:x.title||'', href:x.href||''}; }));
+  const sk = data.skills || {};
+  writeTable_(SHEETS.SK_LANG.name, SHEETS.SK_LANG.headers, (sk.languages||[]).map(function(v){ return { value:v }; }));
+  writeTable_(SHEETS.SK_FW.name, SHEETS.SK_FW.headers, (sk.frameworks||[]).map(function(v){ return { value:v }; }));
+  writeTable_(SHEETS.SK_TOOLS.name, SHEETS.SK_TOOLS.headers, (sk.tools||[]).map(function(v){ return { value:v }; }));
+  writeTable_(SHEETS.SK_CLOUDS.name, SHEETS.SK_CLOUDS.headers, (sk.clouds||[]).map(function(v){ return { value:v }; }));
+  writeTable_(SHEETS.CAREERS.name, SHEETS.CAREERS.headers, (data.careers||[]).map(function(c){
+    return {
+      period:c.period||'', title:c.title||'', industry:c.industry||'',
+      description:(c.description||[]).join(';'), languages:(c.languages||[]).join(';'), tools:(c.tools||[]).join(';')
+    };
+  }));
+  writeTable_(SHEETS.HOBBIES.name, SHEETS.HOBBIES.headers, (data.hobbies||[]).map(function(h){ return { title:h.title||'', code:h.code||'', desc:h.desc||'', image:h.image||'' }; }));
+  writeTable_(SHEETS.WORKS.name, SHEETS.WORKS.headers, (data.works||[]).map(function(w){ return { title:w.title||'', desc:w.desc||'', href:w.href||'', image:w.image||'' }; }));
+}
+/**
+ * Returns admin password for production (Apps Script).
+ * Set this via Script Properties: ADMIN_PASSWORD.
+ */
+function getAdminPassword_() {
+  const v = PropertiesService.getScriptProperties().getProperty('ADMIN_PASSWORD');
+  return v || '';
+}
+
+/** HTML include helper */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/** Admin UI RPCs */
+function uiGetData() {
+  ensureSpreadsheet_();
+  return readAll_();
+}
+
+function uiSaveData(payload) {
+  ensureSpreadsheet_();
+  const pw = getAdminPassword_();
+  if (!payload || payload.password !== pw) {
+    return { ok: false, error: 'Unauthorized' };
+  }
+  saveAll_(payload.data || {});
+  return { ok: true, data: readAll_() };
 }

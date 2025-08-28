@@ -1,0 +1,168 @@
+<script>
+  (function(){
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+    const msg = $('#msg');
+    const pw = $('#pw');
+    let state = null;
+
+    function setMsg(t, ok){ msg.textContent = t || ''; msg.className = ok? 'msg ok':'msg'; }
+
+    function toLines(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+    function fromLines(arr){ return (arr||[]).join('\n'); }
+
+    function bindTabs(){
+      $$('.tabs button').forEach(b => {
+        b.addEventListener('click', () => {
+          $$('.tabs button').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active');
+          const id = b.getAttribute('data-tab');
+          $$('.page').forEach(x=>x.classList.remove('active'));
+          $(`.page[data-page="${id}"]`).classList.add('active');
+        });
+      });
+    }
+
+    function renderProfile(){
+      $('#about_text').value = state?.about?.text || '';
+      const wrap = $('#links'); wrap.innerHTML = '';
+      (state?.links||[]).forEach(addLinkRow);
+      $('[data-add="link"]').onclick = () => addLinkRow();
+
+      function addLinkRow(val={}){
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `<div class="two">
+            <div><label>Title</label><input data-k="title" value="${val.title||''}"></div>
+            <div><label>URL</label><input data-k="href" value="${val.href||''}" placeholder="https://..."></div>
+          </div>
+          <div class="row"><span></span><button data-remove>Remove</button></div>`;
+        div.querySelector('[data-remove]').onclick = ()=> div.remove();
+        wrap.appendChild(div);
+      }
+    }
+
+    function renderSkills(){
+      $('#skills_languages').value = fromLines(state?.skills?.languages);
+      $('#skills_frameworks').value = fromLines(state?.skills?.frameworks);
+      $('#skills_tools').value = fromLines(state?.skills?.tools);
+      $('#skills_clouds').value = fromLines(state?.skills?.clouds);
+    }
+
+    function renderCareers(){
+      const wrap = $('#careers'); wrap.innerHTML = '';
+      (state?.careers||[]).forEach(addCareer);
+      $('[data-add="career"]').onclick = () => addCareer();
+      function addCareer(val={}){
+        const el = document.createElement('div'); el.className = 'item';
+        el.innerHTML = `<div class="two">
+            <div><label>Period</label><input data-k="period" value="${val.period||''}"></div>
+            <div><label>Title</label><input data-k="title" value="${val.title||''}"></div>
+          </div>
+          <div><label>Industry</label><input data-k="industry" value="${val.industry||''}"></div>
+          <div class="two">
+            <div><label>Descriptions (one per line)</label><textarea data-k="description">${fromLines(val.description)}</textarea></div>
+            <div><label>Languages (one per line)</label><textarea data-k="languages">${fromLines(val.languages)}</textarea></div>
+          </div>
+          <div><label>Tools (one per line)</label><textarea data-k="tools">${fromLines(val.tools)}</textarea></div>
+          <div class="row"><span></span><button data-remove>Remove</button></div>`;
+        el.querySelector('[data-remove]').onclick = () => el.remove();
+        wrap.appendChild(el);
+      }
+    }
+
+    function renderWorks(){
+      const wrap = $('#works'); wrap.innerHTML = '';
+      (state?.works||[]).forEach(addWork);
+      $('[data-add="work"]').onclick = () => addWork();
+      function addWork(val={}){
+        const el = document.createElement('div'); el.className = 'item';
+        el.innerHTML = `<div class="two">
+            <div><label>Title</label><input data-k="title" value="${val.title||''}"></div>
+            <div><label>URL</label><input data-k="href" value="${val.href||''}" placeholder="# or https://..."></div>
+          </div>
+          <div class="two">
+            <div><label>Description</label><input data-k="desc" value="${val.desc||''}"></div>
+            <div><label>Image URL</label><input data-k="image" value="${val.image||''}"></div>
+          </div>
+          <div class="row"><span></span><button data-remove>Remove</button></div>`;
+        el.querySelector('[data-remove]').onclick = () => el.remove();
+        wrap.appendChild(el);
+      }
+    }
+
+    function renderHobbies(){
+      const wrap = $('#hobbies'); wrap.innerHTML = '';
+      (state?.hobbies||[]).forEach(addHobby);
+      $('[data-add="hobby"]').onclick = () => addHobby();
+      function addHobby(val={}){
+        const el = document.createElement('div'); el.className = 'item';
+        el.innerHTML = `<div class="two">
+            <div><label>Title</label><input data-k="title" value="${val.title||''}"></div>
+            <div><label>Friend Code</label><input data-k="code" value="${val.code||''}"></div>
+          </div>
+          <div class="two">
+            <div><label>Description</label><textarea data-k="desc">${val.desc||''}</textarea></div>
+            <div><label>Image URL</label><input data-k="image" value="${val.image||''}"></div>
+          </div>
+          <div class="row"><span></span><button data-remove>Remove</button></div>`;
+        el.querySelector('[data-remove]').onclick = () => el.remove();
+        wrap.appendChild(el);
+      }
+    }
+
+    function collect(){
+      return {
+        about: { text: $('#about_text').value },
+        links: $$('#links .item').map(n => ({ title: $('[data-k="title"]', n).value.trim(), href: $('[data-k="href"]', n).value.trim() })).filter(x=>x.title||x.href),
+        skills: {
+          languages: toLines($('#skills_languages').value),
+          frameworks: toLines($('#skills_frameworks').value),
+          tools: toLines($('#skills_tools').value),
+          clouds: toLines($('#skills_clouds').value),
+        },
+        careers: $$('#careers .item').map(n => ({
+          period: $('[data-k="period"]', n).value.trim(),
+          title: $('[data-k="title"]', n).value.trim(),
+          industry: $('[data-k="industry"]', n).value.trim(),
+          description: toLines($('[data-k="description"]', n).value),
+          languages: toLines($('[data-k="languages"]', n).value),
+          tools: toLines($('[data-k="tools"]', n).value),
+        })).filter(x=>x.period||x.title||x.industry),
+        works: $$('#works .item').map(n => ({
+          title: $('[data-k="title"]', n).value.trim(),
+          href: $('[data-k="href"]', n).value.trim(),
+          desc: $('[data-k="desc"]', n).value.trim(),
+          image: $('[data-k="image"]', n).value.trim(),
+        })).filter(x=>x.title||x.href||x.desc),
+        hobbies: $$('#hobbies .item').map(n => ({
+          title: $('[data-k="title"]', n).value.trim(),
+          code: $('[data-k="code"]', n).value.trim(),
+          desc: $('[data-k="desc"]', n).value.trim(),
+          image: $('[data-k="image"]', n).value.trim(),
+        })).filter(x=>x.title||x.code||x.desc),
+      };
+    }
+
+    function renderAll(){ renderProfile(); renderSkills(); renderCareers(); renderWorks(); renderHobbies(); }
+
+    // Events
+    $('#reload').onclick = () => {
+      setMsg('Loading...');
+      google.script.run.withSuccessHandler((json) => { state = json; setMsg('Loaded', true); renderAll(); }).uiGetData();
+    };
+    $('#save').onclick = () => {
+      setMsg('Saving...');
+      const payload = { password: pw.value, data: collect() };
+      google.script.run.withSuccessHandler((res) => {
+        if (res && res.ok){ state = res.data; setMsg('Saved', true); }
+        else setMsg('Error: ' + (res && res.error || 'Failed'));
+      }).uiSaveData(payload);
+    };
+
+    bindTabs();
+    // Initial load
+    $('#reload').click();
+  })();
+</script>
+
