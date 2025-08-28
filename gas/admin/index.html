@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Console — Nekokun Portfolio (Mock)</title>
+    <style>
+      :root{ --bg:#f7f7f9; --panel:#fff; --border:#e5e7eb; --text:#111; --muted:#6b7280; --primary:#4f46e5 }
+      *{ box-sizing: border-box }
+      body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text) }
+      header{ position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border) }
+      .hdr{ max-width:1100px; margin:auto; padding:12px 16px; display:flex; gap:16px; align-items:center; justify-content:space-between }
+      .brand{ font-weight:700 }
+      .row{ display:flex; gap:10px; align-items:center }
+      button{ padding:8px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer }
+      button.primary{ background:var(--primary); color:#fff; border-color:transparent }
+      main{ max-width:1100px; margin:auto; padding:16px }
+      .layout{ display:grid; grid-template-columns:260px 1fr; gap:16px }
+      nav{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:8px }
+      nav button{ width:100%; text-align:left; padding:10px 12px; border-radius:8px; border:0; background:transparent }
+      nav button.active{ background:#eef2ff; color:#1d4ed8 }
+      .panel{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px }
+      .grid{ display:grid; grid-template-columns: 1fr; gap:12px }
+      .two{ display:grid; grid-template-columns: 1fr 1fr; gap:12px }
+      .fld{ display:flex; flex-direction:column; gap:6px }
+      label{ font-size:13px; color:var(--muted) }
+      input, textarea{ border:1px solid var(--border); border-radius:8px; padding:8px 10px; font:inherit; background:#fff }
+      textarea{ min-height: 90px }
+      .items{ display:grid; gap:12px }
+      .item{ border:1px dashed var(--border); padding:12px; border-radius:10px; background:#fff }
+      .item .row{ justify-content:space-between }
+      .muted{ color:var(--muted); font-size:12px }
+      .msg{ min-height: 20px }
+      .ok{ color:#0a0 }
+      .err{ color:#a00 }
+      @media (max-width: 900px){ .layout{ grid-template-columns: 1fr } nav{ order:1 } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="hdr">
+        <div class="brand">Admin Console</div>
+        <div class="row">
+          <button id="reload">Reload</button>
+          <button id="saveAll" class="primary">Save All</button>
+          <button id="logout">Logout</button>
+          <span id="msg" class="msg"></span>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="layout">
+        <nav id="tabs"></nav>
+        <section class="panel" id="content"></section>
+      </div>
+    </main>
+    <template id="tpl-profile">
+      <div class="fld"><label>About Text</label><textarea id="about_text" placeholder="Self introduction for Profile page"></textarea></div>
+      <h3>Links (About page bullets)</h3>
+      <div class="items" id="links_items"></div>
+      <button id="add_link">+ Add Link</button>
+      <div class="row" style="margin-top:12px">
+        <button data-action="save-profile" class="primary">Save Profile</button>
+        <span class="muted">Home content is hard-coded</span>
+      </div>
+    </template>
+    <template id="tpl-skills">
+      <div class="grid">
+        <div class="fld"><label>Languages (one per line)</label><textarea id="skills_languages"></textarea></div>
+        <div class="fld"><label>Frameworks (one per line)</label><textarea id="skills_frameworks"></textarea></div>
+        <div class="fld"><label>Tools (one per line)</label><textarea id="skills_tools"></textarea></div>
+        <div class="fld"><label>Cloud services (one per line)</label><textarea id="skills_clouds"></textarea></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button data-action="save-skills" class="primary">Save Skills</button></div>
+    </template>
+    <template id="tpl-career">
+      <div class="items" id="career_items"></div>
+      <button id="add_career">+ Add Career</button>
+      <div class="row" style="margin-top:12px"><button data-action="save-career" class="primary">Save Career</button></div>
+    </template>
+    <template id="tpl-works">
+      <div class="items" id="works_items"></div>
+      <button id="add_work">+ Add Work</button>
+      <div class="row" style="margin-top:12px"><button data-action="save-works" class="primary">Save Works</button></div>
+    </template>
+    <template id="tpl-hobby">
+      <div class="items" id="hobby_items"></div>
+      <button id="add_hobby">+ Add Hobby</button>
+      <div class="row" style="margin-top:12px"><button data-action="save-hobby" class="primary">Save Hobbies</button></div>
+    </template>
+    <template id="tpl-link-item">
+      <div class="item">
+        <div class="two">
+          <div class="fld"><label>Title</label><input data-k="title" /></div>
+          <div class="fld"><label>URL</label><input data-k="href" placeholder="https://..." /></div>
+        </div>
+        <div class="row"><span class="muted"></span><button data-action="remove">Remove</button></div>
+      </div>
+    </template>
+    <template id="tpl-career-item">
+      <div class="item">
+        <div class="two">
+          <div class="fld"><label>Period</label><input data-k="period" placeholder="2019 — 2021" /></div>
+          <div class="fld"><label>Title</label><input data-k="title" placeholder="Role" /></div>
+        </div>
+        <div class="fld"><label>Industry</label><input data-k="industry" placeholder="e.g., Web / Internet" /></div>
+        <div class="two">
+          <div class="fld"><label>Descriptions (one per line, up to 3)</label><textarea data-k="description"></textarea></div>
+          <div class="fld"><label>Languages (one per line)</label><textarea data-k="languages"></textarea></div>
+        </div>
+        <div class="fld"><label>Tools (one per line)</label><textarea data-k="tools"></textarea></div>
+        <div class="row"><span class="muted"></span><button data-action="remove">Remove</button></div>
+      </div>
+    </template>
+    <template id="tpl-work-item">
+      <div class="item">
+        <div class="two">
+          <div class="fld"><label>Title</label><input data-k="title" /></div>
+          <div class="fld"><label>URL</label><input data-k="href" placeholder="# or https://..." /></div>
+        </div>
+        <div class="two">
+          <div class="fld"><label>Description (one line)</label><input data-k="desc" /></div>
+          <div class="fld"><label>Image URL</label><input data-k="image" placeholder="assets/images/..." /></div>
+        </div>
+        <div class="row"><span class="muted"></span><button data-action="remove">Remove</button></div>
+      </div>
+    </template>
+    <template id="tpl-hobby-item">
+      <div class="item">
+        <div class="two">
+          <div class="fld"><label>Title</label><input data-k="title" /></div>
+          <div class="fld"><label>Friend Code</label><input data-k="code" placeholder="e.g., SW-XXXX-XXXX-XXXX" /></div>
+        </div>
+        <div class="two">
+          <div class="fld"><label>Description (≤2 lines)</label><textarea data-k="desc"></textarea></div>
+          <div class="fld"><label>Image URL</label><input data-k="image" placeholder="assets/images/..." /></div>
+        </div>
+        <div class="row"><span class="muted"></span><button data-action="remove">Remove</button></div>
+      </div>
+    </template>
+    <script>
+      let state = null;
+      const msg = document.getElementById('msg');
+      const content = document.getElementById('content');
+      const tabsEl = document.getElementById('tabs');
+
+      const sections = [
+        { id:'profile', label:'Profile' },
+        { id:'skills', label:'Skills' },
+        { id:'career', label:'Career' },
+        { id:'works', label:'Works' },
+        { id:'hobby', label:'Hobbies' },
+      ];
+
+      function el(tag, attrs={}, ...children){
+        const e = document.createElement(tag);
+        Object.entries(attrs).forEach(([k,v])=>{ if(k==='class') e.className=v; else if(k==='html') e.innerHTML=v; else e.setAttribute(k,v); });
+        children.forEach(c => e.append(c));
+        return e;
+      }
+
+      function setMsg(text, ok){ msg.textContent = text; msg.className = ok ? 'ok' : (text? 'err':''); }
+
+      async function load(){
+        setMsg('Loading...');
+        const r = await fetch('/api/portfolio');
+        state = await r.json();
+        setMsg('Loaded', true);
+      }
+
+      async function saveAll(){
+        try{
+          setMsg('Saving...');
+          const r = await fetch('/admin/api/save', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ data: state }) });
+          if (!r.ok) throw new Error('Save failed');
+          setMsg('Saved', true);
+        }catch(e){ setMsg('Error: '+e.message, false); }
+      }
+
+      function renderTabs(active){
+        tabsEl.innerHTML = '';
+        sections.forEach(s => {
+          const b = el('button', { class: s.id===active? 'active':'' });
+          b.textContent = s.label;
+          b.onclick = ()=>renderSection(s.id);
+          tabsEl.appendChild(b);
+        });
+      }
+
+      function readList(text){ return text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean); }
+      function writeList(arr){ return (arr||[]).join('\n'); }
+
+      function renderSection(id){
+        renderTabs(id);
+        if (id === 'profile') renderProfile();
+        else if (id === 'skills') renderSkills();
+        else if (id === 'career') renderCareer();
+        else if (id === 'works') renderWorks();
+        else if (id === 'hobby') renderHobby();
+      }
+
+      function renderProfile(){
+        content.innerHTML = document.getElementById('tpl-profile').innerHTML;
+        content.querySelector('#about_text').value = state.about?.text || '';
+        const list = content.querySelector('#links_items');
+        const data = state.links || [];
+        const tpl = document.getElementById('tpl-link-item').innerHTML;
+        function addRow(val={}){
+          const wrap = document.createElement('div');
+          wrap.innerHTML = tpl; const node = wrap.firstElementChild;
+          node.querySelector('[data-k="title"]').value = val.title||'';
+          node.querySelector('[data-k="href"]').value = val.href||'';
+          node.querySelector('[data-action="remove"]').onclick = ()=>{ node.remove(); };
+          list.appendChild(node);
+        }
+        data.forEach(addRow);
+        content.querySelector('#add_link').onclick = ()=>addRow({});
+        content.querySelector('[data-action="save-profile"]').onclick = async ()=>{
+          state.about = { text: content.querySelector('#about_text').value };
+          state.links = Array.from(list.children).map(item => ({
+            title: item.querySelector('[data-k="title"]').value.trim(),
+            href: item.querySelector('[data-k="href"]').value.trim(),
+          })).filter(x=>x.title||x.href);
+          await saveAll();
+        };
+      }
+
+      function renderSkills(){
+        content.innerHTML = document.getElementById('tpl-skills').innerHTML;
+        const s = state.skills || {};
+        content.querySelector('#skills_languages').value = writeList(s.languages);
+        content.querySelector('#skills_frameworks').value = writeList(s.frameworks);
+        content.querySelector('#skills_tools').value = writeList(s.tools);
+        content.querySelector('#skills_clouds').value = writeList(s.clouds);
+        content.querySelector('[data-action="save-skills"]').onclick = async ()=>{
+          state.skills = {
+            languages: readList(content.querySelector('#skills_languages').value),
+            frameworks: readList(content.querySelector('#skills_frameworks').value),
+            tools: readList(content.querySelector('#skills_tools').value),
+            clouds: readList(content.querySelector('#skills_clouds').value),
+          };
+          await saveAll();
+        };
+      }
+
+      function renderCareer(){
+        content.innerHTML = document.getElementById('tpl-career').innerHTML;
+        const list = content.querySelector('#career_items');
+        const tpl = document.getElementById('tpl-career-item').innerHTML;
+        function addRow(val={}){
+          const wrap = document.createElement('div'); wrap.innerHTML = tpl; const node = wrap.firstElementChild;
+          const q = sel => node.querySelector(sel);
+          q('[data-k="period"]').value = val.period||'';
+          q('[data-k="title"]').value = val.title||'';
+          q('[data-k="industry"]').value = val.industry||'';
+          q('[data-k="description"]').value = writeList(val.description||[]);
+          q('[data-k="languages"]').value = writeList(val.languages||[]);
+          q('[data-k="tools"]').value = writeList(val.tools||[]);
+          q('[data-action="remove"]').onclick = ()=>node.remove();
+          list.appendChild(node);
+        }
+        (state.careers||[]).forEach(addRow);
+        content.querySelector('#add_career').onclick = ()=>addRow({});
+        content.querySelector('[data-action="save-career"]').onclick = async ()=>{
+          state.careers = Array.from(list.children).map(n => ({
+            period: n.querySelector('[data-k="period"]').value.trim(),
+            title: n.querySelector('[data-k="title"]').value.trim(),
+            industry: n.querySelector('[data-k="industry"]').value.trim(),
+            description: readList(n.querySelector('[data-k="description"]').value),
+            languages: readList(n.querySelector('[data-k="languages"]').value),
+            tools: readList(n.querySelector('[data-k="tools"]').value),
+          })).filter(x=>x.period||x.title||x.industry);
+          await saveAll();
+        };
+      }
+
+      function renderWorks(){
+        content.innerHTML = document.getElementById('tpl-works').innerHTML;
+        const list = content.querySelector('#works_items');
+        const tpl = document.getElementById('tpl-work-item').innerHTML;
+        function addRow(val={}){
+          const wrap = document.createElement('div'); wrap.innerHTML = tpl; const node = wrap.firstElementChild;
+          const q = sel => node.querySelector(sel);
+          q('[data-k="title"]').value = val.title||'';
+          q('[data-k="href"]').value = val.href||'';
+          q('[data-k="desc"]').value = val.desc||'';
+          q('[data-k="image"]').value = val.image||'';
+          q('[data-action="remove"]').onclick = ()=>node.remove();
+          list.appendChild(node);
+        }
+        (state.works||[]).forEach(addRow);
+        content.querySelector('#add_work').onclick = ()=>addRow({});
+        content.querySelector('[data-action="save-works"]').onclick = async ()=>{
+          state.works = Array.from(list.children).map(n => ({
+            title: n.querySelector('[data-k="title"]').value.trim(),
+            href: n.querySelector('[data-k="href"]').value.trim(),
+            desc: n.querySelector('[data-k="desc"]').value.trim(),
+            image: n.querySelector('[data-k="image"]').value.trim(),
+          })).filter(x=>x.title||x.href||x.desc);
+          await saveAll();
+        };
+      }
+
+      function renderHobby(){
+        content.innerHTML = document.getElementById('tpl-hobby').innerHTML;
+        const list = content.querySelector('#hobby_items');
+        const tpl = document.getElementById('tpl-hobby-item').innerHTML;
+        function addRow(val={}){
+          const wrap = document.createElement('div'); wrap.innerHTML = tpl; const node = wrap.firstElementChild;
+          const q = sel => node.querySelector(sel);
+          q('[data-k="title"]').value = val.title||'';
+          q('[data-k="code"]').value = val.code||'';
+          q('[data-k="desc"]').value = val.desc||'';
+          q('[data-k="image"]').value = val.image||'';
+          q('[data-action="remove"]').onclick = ()=>node.remove();
+          list.appendChild(node);
+        }
+        (state.hobbies||[]).forEach(addRow);
+        content.querySelector('#add_hobby').onclick = ()=>addRow({});
+        content.querySelector('[data-action="save-hobby"]').onclick = async ()=>{
+          state.hobbies = Array.from(list.children).map(n => ({
+            title: n.querySelector('[data-k="title"]').value.trim(),
+            code: n.querySelector('[data-k="code"]').value.trim(),
+            desc: n.querySelector('[data-k="desc"]').value.trim(),
+            image: n.querySelector('[data-k="image"]').value.trim(),
+          })).filter(x=>x.title||x.code||x.desc);
+          await saveAll();
+        };
+      }
+
+      document.getElementById('reload').onclick = async ()=>{ await load(); renderSection('profile'); };
+      document.getElementById('saveAll').onclick = saveAll;
+      document.getElementById('logout').onclick = async ()=>{
+        try{ await fetch('/admin/api/logout', { method:'POST' }); }catch(_){ }
+        location.href = '/admin';
+      };
+
+      (async function init(){
+        await load();
+        renderSection('profile');
+      })();
+    </script>
+  </body>
+  </html>

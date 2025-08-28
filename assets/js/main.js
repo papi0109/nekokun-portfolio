@@ -162,6 +162,12 @@
       });
     }
 
+    // About text
+    const aboutP = document.querySelector('#about .about-copy p');
+    if (aboutP && data.about && typeof data.about.text === 'string') {
+      aboutP.textContent = data.about.text;
+    }
+
     // About - absorb related links as a bullet list (no descriptions)
     const aboutLinks = document.querySelector('#about .link-list');
     if (aboutLinks) {

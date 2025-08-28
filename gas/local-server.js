@@ -1,18 +1,29 @@
 // Local mock of Google Apps Script endpoint for portfolio data
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 8888;
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'test-api-password';
 
-app.use(cors({ origin: '*', methods: ['GET'] }));
+app.use(cors({ origin: '*', methods: ['GET','POST'] }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use((req, res, next) => {
-  if (req.method !== 'GET') return res.status(405).json({ error: 'Method Not Allowed' });
+  // Allow admin endpoints to use POST
+  if (req.method !== 'GET' && !req.path.startsWith('/admin')) {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
   next();
 });
 
-// Static portfolio data to simulate GAS response
-const data = {
+// Default portfolio data to simulate GAS response
+const defaultData = {
   profile: {
     name: 'ねこくん',
     title: '自称PM/PL・自称AIエンジニア・自称フルサイクルエンジニア',
@@ -22,6 +33,9 @@ const data = {
       github: 'https://github.com/your-github',
       linkedin: 'https://www.linkedin.com/in/your-linkedin'
     }
+  },
+  about: {
+    text: 'パフォーマンスとアクセシビリティ、保守性を重視したプロダクトをつくっています。型安全なコード、クリーンアーキテクチャ、心地よい UX が好きです。'
   },
   skills: {
     languages: ['TypeScript', 'JavaScript', 'Python'],
@@ -102,12 +116,160 @@ const data = {
   ]
 };
 
+// CSV helpers
+function ensureDataDir(){ fs.mkdirSync(DATA_DIR, { recursive: true }); }
+
+function toCSVRow(values){
+  return values.map(v => {
+    const s = String(v ?? '').replace(/\r?\n/g, ' ').trim();
+    if (s.includes(',') || s.includes('"')) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }).join(',');
+}
+
+function writeCSV(file, header, rows){
+  const out = [header.join(',')].concat(rows.map(r => toCSVRow(r))).join('\n');
+  fs.writeFileSync(path.join(DATA_DIR, file), out, 'utf8');
+}
+
+function readCSV(file){
+  const full = path.join(DATA_DIR, file);
+  if (!fs.existsSync(full)) return null;
+  const txt = fs.readFileSync(full, 'utf8');
+  const lines = txt.split(/\r?\n/).filter(Boolean);
+  if (lines.length === 0) return [];
+  const header = lines.shift().split(',');
+  return lines.map(line => {
+    // naive CSV split (no embedded commas handling beyond quotes removed above)
+    let cols = [];
+    let cur = '';
+    let inQ = false;
+    for (let i=0;i<line.length;i++){
+      const ch = line[i];
+      if (ch === '"'){
+        if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (ch === ',' && !inQ){ cols.push(cur); cur=''; }
+      else cur += ch;
+    }
+    cols.push(cur);
+    const obj = {};
+    header.forEach((h, idx) => obj[h.trim()] = (cols[idx] ?? '').trim());
+    return obj;
+  });
+}
+
+function bootstrapCSV(data){
+  ensureDataDir();
+  if (!readCSV('about.csv')) writeCSV('about.csv', ['text'], [[data.about?.text || '']]);
+  if (!readCSV('links.csv')) writeCSV('links.csv', ['title','href'], (data.links||[]).map(l=>[l.title,l.href]));
+  if (!readCSV('skills_languages.csv')) writeCSV('skills_languages.csv', ['value'], (data.skills?.languages||[]).map(v=>[v]));
+  if (!readCSV('skills_frameworks.csv')) writeCSV('skills_frameworks.csv', ['value'], (data.skills?.frameworks||[]).map(v=>[v]));
+  if (!readCSV('skills_tools.csv')) writeCSV('skills_tools.csv', ['value'], (data.skills?.tools||[]).map(v=>[v]));
+  if (!readCSV('skills_clouds.csv')) writeCSV('skills_clouds.csv', ['value'], (data.skills?.clouds||[]).map(v=>[v]));
+  if (!readCSV('careers.csv')) writeCSV('careers.csv', ['period','title','industry','description','languages','tools'],
+    (data.careers||[]).map(c=>[c.period,c.title,c.industry,(c.description||[]).join(';'),(c.languages||[]).join(';'),(c.tools||[]).join(';')]));
+  if (!readCSV('hobbies.csv')) writeCSV('hobbies.csv', ['title','code','desc','image'], (data.hobbies||[]).map(h=>[h.title,h.code,h.desc,h.image]));
+  if (!readCSV('works.csv')) writeCSV('works.csv', ['title','desc','href','image'], (data.works||[]).map(w=>[w.title,w.desc,w.href,w.image]));
+}
+
+function loadFromCSV(){
+  ensureDataDir();
+  const loaded = JSON.parse(JSON.stringify(defaultData));
+  const about = readCSV('about.csv'); if (about && about[0]) loaded.about = { text: about[0].text };
+  const links = readCSV('links.csv'); if (links) loaded.links = links.map(r=>({title:r.title, href:r.href}));
+  const sl = readCSV('skills_languages.csv'); if (sl) loaded.skills.languages = sl.map(r=>r.value).filter(Boolean);
+  const sf = readCSV('skills_frameworks.csv'); if (sf) loaded.skills.frameworks = sf.map(r=>r.value).filter(Boolean);
+  const st = readCSV('skills_tools.csv'); if (st) loaded.skills.tools = st.map(r=>r.value).filter(Boolean);
+  const sc = readCSV('skills_clouds.csv'); if (sc) loaded.skills.clouds = sc.map(r=>r.value).filter(Boolean);
+  const careers = readCSV('careers.csv'); if (careers) loaded.careers = careers.map(r=>({
+    period:r.period, title:r.title, industry:r.industry,
+    description:(r.description||'').split(';').filter(Boolean),
+    languages:(r.languages||'').split(';').filter(Boolean),
+    tools:(r.tools||'').split(';').filter(Boolean)
+  }));
+  const hobbies = readCSV('hobbies.csv'); if (hobbies) loaded.hobbies = hobbies.map(r=>({title:r.title, code:r.code, desc:r.desc, image:r.image}));
+  const works = readCSV('works.csv'); if (works) loaded.works = works.map(r=>({title:r.title, desc:r.desc, href:r.href, image:r.image}));
+  return loaded;
+}
+
+function saveToCSV(payload){
+  ensureDataDir();
+  const d = payload || {};
+  const about = (d.about && d.about.text) ? String(d.about.text) : '';
+  writeCSV('about.csv', ['text'], [[about]]);
+  writeCSV('links.csv', ['title','href'], (d.links||[]).map(l=>[l.title||'', l.href||'']));
+  const skills = d.skills||{};
+  writeCSV('skills_languages.csv', ['value'], (skills.languages||[]).map(v=>[v]));
+  writeCSV('skills_frameworks.csv', ['value'], (skills.frameworks||[]).map(v=>[v]));
+  writeCSV('skills_tools.csv', ['value'], (skills.tools||[]).map(v=>[v]));
+  writeCSV('skills_clouds.csv', ['value'], (skills.clouds||[]).map(v=>[v]));
+  writeCSV('careers.csv', ['period','title','industry','description','languages','tools'],
+    (d.careers||[]).map(c=>[
+      c.period||'', c.title||'', c.industry||'', (c.description||[]).join(';'), (c.languages||[]).join(';'), (c.tools||[]).join(';')
+    ]));
+  writeCSV('hobbies.csv', ['title','code','desc','image'], (d.hobbies||[]).map(h=>[h.title||'',h.code||'',h.desc||'',h.image||'']));
+  writeCSV('works.csv', ['title','desc','href','image'], (d.works||[]).map(w=>[w.title||'',w.desc||'',w.href||'',w.image||'']));
+}
+
+ensureDataDir();
+bootstrapCSV(defaultData);
+let data = loadFromCSV();
+
 app.get('/api/portfolio', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json(data);
 });
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
+
+// Admin auth
+app.post('/admin/api/login', (req, res) => {
+  const pw = (req.body && req.body.password) || '';
+  if (pw && pw === ADMIN_PASSWORD){
+    res.cookie('adm', '1', { httpOnly: true, sameSite: 'lax' });
+    return res.json({ ok: true });
+  }
+  return res.status(401).json({ error: 'Unauthorized' });
+});
+
+app.post('/admin/api/logout', (req, res) => {
+  try{
+    res.clearCookie('adm', { httpOnly: true, sameSite: 'lax' });
+  }catch(_){}
+  return res.json({ ok: true });
+});
+
+// Gate admin routes (except login)
+app.use('/admin', (req, res, next) => {
+  if (req.path === '/api/login' || req.path === '/api/logout') return next();
+  const authed = req.cookies && req.cookies.adm === '1';
+  if (!authed){
+    // Serve login page for HTML requests
+    if ((req.headers.accept || '').includes('text/html')){
+      return res.sendFile(path.join(__dirname, 'admin', 'login.html'));
+    }
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+});
+
+// Admin UI (static)
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
+
+// Admin API to save JSON into CSVs
+app.post('/admin/api/save', (req, res) => {
+  try{
+    const payload = req.body && (req.body.data || req.body);
+    if (!payload) return res.status(400).json({ error: 'Missing data' });
+    saveToCSV(payload);
+    data = loadFromCSV();
+    res.json({ ok: true });
+  }catch(err){
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save' });
+  }
+});
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Local GAS mock listening on http://0.0.0.0:${PORT}`);

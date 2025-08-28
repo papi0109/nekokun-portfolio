@@ -49,3 +49,5 @@ Thumbs.db
 
 # Google Apps Script (optional to ignore tracking updates)
 gas/.clasp.json
+gas/data/
+gas/data/*.csv
