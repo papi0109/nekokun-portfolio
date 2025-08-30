@@ -218,6 +218,11 @@ let data = loadFromCSV();
 
 app.get('/api/portfolio', (req, res) => {
   res.set('Cache-Control', 'no-store');
+  const cb = req.query && req.query.callback;
+  if (cb) {
+    res.type('application/javascript');
+    return res.send(`${cb}(${JSON.stringify(data)})`);
+  }
   res.json(data);
 });
 

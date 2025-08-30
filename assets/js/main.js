@@ -2,11 +2,29 @@
 (function(){
   const SITE_TITLE = "Nekokun's portfolio!";
   const SECTION_JA = { home: 'Home', about: 'Profile', skills: 'Skills', career: 'Career', works: 'Works', hobby: 'Favorites' };
-  // API base from runtime config (set by GitHub Actions on Pages)
-  const RUNTIME_BASE = (typeof window !== 'undefined' && window.__APP_CONFIG__ && window.__APP_CONFIG__.API_BASE) || '';
-  // Local fallback when running via docker-compose
-  const LOCAL_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? 'http://localhost:8888' : '';
-  const API_BASE = RUNTIME_BASE || LOCAL_BASE;
+  // API URL from runtime config (set by GitHub Actions on Pages)
+  const RUNTIME_URL = (typeof window !== 'undefined' && window.__APP_CONFIG__ && window.__APP_CONFIG__.API_URL) || '';
+  // Resolve effective API URL with easy overrides
+  function resolveApiURL(){
+    const params = new URLSearchParams(location.search || '');
+    const q = params.get('api');
+    const isLocalHost = (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+    const localDefault = 'http://localhost:8888/api/portfolio';
+    const pick = (val) => {
+      if (!val) return '';
+      if (val === 'local') return localDefault;
+      if (/^https?:\/\//i.test(val)) return val;
+      return '';
+    };
+    const fromQuery = pick(q);
+    if (fromQuery) return fromQuery;
+    const stored = pick(localStorage.getItem('API_URL_OVERRIDE'));
+    if (stored) return stored;
+    if (RUNTIME_URL) return RUNTIME_URL;
+    if (isLocalHost) return localDefault;
+    return '';
+  }
+  const API_URL = resolveApiURL();
 
   let portfolioData = null;
   let io; // IntersectionObserver
@@ -70,10 +88,32 @@
   backBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   updateBackToTop();
 
+  function shouldUseJsonp(url){
+    try { const u = new URL(url); return /script\.google\.com|googleusercontent\.com$/i.test(u.hostname); } catch { return false; }
+  }
+
+  function jsonp(url){
+    return new Promise((resolve, reject) => {
+      const cb = '__jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+      const cleanup = () => { try{ delete window[cb]; }catch(_){} if (script && script.parentNode) script.parentNode.removeChild(script); };
+      const script = document.createElement('script');
+      window[cb] = (payload) => { resolve(payload); cleanup(); };
+      const sep = url.includes('?') ? '&' : '?';
+      script.src = url + sep + 'callback=' + cb;
+      script.onerror = () => { reject(new Error('JSONP failed')); cleanup(); };
+      document.body.appendChild(script);
+      setTimeout(() => { reject(new Error('JSONP timeout')); cleanup(); }, 12000);
+    });
+  }
+
   // Fetch portfolio data once on first load and render sections
-  fetch(`${API_BASE}/api/portfolio`, { method: 'GET' })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-    .then(data => {
+  const params = new URLSearchParams(location.search || '');
+  const forceJsonp = params.has('jsonp');
+  const fetcher = (forceJsonp || shouldUseJsonp(API_URL))
+    ? jsonp(API_URL)
+    : fetch(API_URL, { method: 'GET' }).then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)));
+
+  fetcher.then(data => {
       portfolioData = data;
       renderFromData(data);
       // Clear loading state for API-driven sections
@@ -83,7 +123,7 @@
       });
     })
     .catch(err => {
-      console.warn('Failed to fetch portfolio data:', err);
+      console.warn('Failed to fetch portfolio data:', err, 'API_URL=', API_URL);
       // Show error in loading area
       ['about','skills','career','hobby','works'].forEach(id => {
         const sec = document.getElementById(id);

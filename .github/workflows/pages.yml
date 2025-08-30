@@ -23,8 +23,8 @@ jobs:
 
       - name: Create runtime config from repo variable
         run: |
-          echo "window.__APP_CONFIG__ = { API_BASE: '${{ vars.API_BASE_URL }}' };" > assets/config.js
-          echo "Created assets/config.js with API_BASE: ${{ vars.API_BASE_URL }}"
+          echo "window.__APP_CONFIG__ = { API_URL: '${{ vars.API_URL }}' };" > assets/config.js
+          echo "Created assets/config.js with API_URL: ${{ vars.API_URL }}"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -41,4 +41,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-

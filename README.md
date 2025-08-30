@@ -16,7 +16,7 @@ GitHub Pages で公開するソフトウェアデベロッパー向けポート�
   - `css/main.css`: スタイル一式
   - `js/main.js`: ルーター、API取得、描画
   - `images/`: 画像（`favicon.png`, `typing_man.png`, ほか）
-  - `config.js`: ランタイム設定（CI で本番用 URL を書き込み）
+- `config.js`: ランタイム設定（CI で本番用 URL を書き込み）
 - `gas/`（ローカルのモックAPI + 本番GASスクリプトの両方を含む）
   - `local-server.js`: Express モックAPI（/api/portfolio, /admin UI など）
   - `admin/`
@@ -55,7 +55,13 @@ docker compose up
 - サイト: http://localhost:8000
 - API（モック）: http://localhost:8888/api/portfolio
 
-フロント側（`assets/js/main.js`）は、`localhost` で動作している場合に `API_BASE=http://localhost:8888` を自動的に使用します。初回ページロード時に `GET /api/portfolio` を取得し、各セクションを描画します。
+フロント側（`assets/js/main.js`）は、`API_URL`（フルURL）を使用してポートフォリオJSONを取得します。`assets/config.js` に設定がない場合、`localhost` では `http://localhost:8888/api/portfolio` を自動的に使用します。GAS へのクロスドメイン取得で CORS が許可されていない場合は、自動的に JSONP にフォールバックします（任意で `?jsonp=1` で強制可能）。
+
+切り替え方法（ローカル⇔実GAS を手軽に）
+- クエリパラメータ: `?api=local` でローカル、`?api=https://...` で任意URL
+- localStorage: `localStorage.setItem('API_URL_OVERRIDE', 'local')` または `localStorage.setItem('API_URL_OVERRIDE', 'https://...')`
+  - 解除: `localStorage.removeItem('API_URL_OVERRIDE')`
+  - CORS で失敗する場合: URL 指定に加えて `?jsonp=1` を付与（例: `/?api=https://script.google.com/macros/s/XXX/exec&jsonp=1`）
 
 ### モック API（gas/local-server.js）
 - 許可メソッド: GET のみ（それ以外は 405）
@@ -65,12 +71,12 @@ docker compose up
 - ポートフォリオ内容は `gas/local-server.js` のデータを書き換えてください。
 
 ## 本番（GitHub Pages）
-GitHub Pages は実行時の環境変数を直接使えないため、GitHub Actions でデプロイ時に `assets/config.js` を生成して API の URL を埋め込みます（リポジトリ変数 `vars` を使用）。
+GitHub Pages は実行時の環境変数を直接使えないため、GitHub Actions でデプロイ時に `assets/config.js` を生成して API の URL（`API_URL`）を埋め込みます（リポジトリ変数 `vars` を使用）。
 
 ### 1) リポジトリ変数の設定
 GitHub リポジトリ設定:
 - Settings → Secrets and variables → Actions → Variables
-- `API_BASE_URL` を追加（GAS Web App の公開 URL）
+- `API_URL` を追加（GAS Web App の公開 URL: 例 `https://script.google.com/macros/s/.../exec`）
   - 例: `https://script.google.com/macros/s/XXXXXXXX/exec`
 
 ### 2) Pages の設定
@@ -80,10 +86,10 @@ GitHub リポジトリ設定:
 ### 3) デプロイ
 本リポジトリには `.github/workflows/pages.yml` を同梱しています。内容は以下:
 - リポジトリを checkout
-- `assets/config.js` を生成（`window.__APP_CONFIG__.API_BASE = ${{ vars.API_BASE_URL }}`）
+- `assets/config.js` を生成（`window.__APP_CONFIG__.API_URL = ${{ vars.API_URL }}`）
 - アーティファクトをアップロードし、Pages へデプロイ
 
-`main` ブランチへ push 後、数分で公開されます。フロントは `assets/config.js` を読み込み、そこで定義された `API_BASE` を使って GAS からデータを取得します。
+`production` ブランチへ push 後、数分で公開されます。フロントは `assets/config.js` を読み込み、そこで定義された `API_URL` を使って GAS からデータを取得します。
 
 ## 実運用の Google Apps Script
 本番で GAS を使う際の流れ（スプレッドシート連携）:
@@ -121,9 +127,9 @@ GitHub リポジトリ設定:
 - デプロイURLを控える
 
 ### 5) GitHub Pages への反映
-- リポジトリの `Settings → Secrets and variables → Actions → Variables` に `API_BASE_URL` を追加
+- リポジトリの `Settings → Secrets and variables → Actions → Variables` に `API_URL` を追加
   - 値: Web アプリのデプロイURL（例: `https://script.google.com/macros/s/XXXXXXXX/exec`）
-- `main` へ push すると、Actions が `assets/config.js` に `API_BASE` を埋め込み、Pages に公開します。
+- `production` へ push すると、Actions が `assets/config.js` に `API_URL` を埋め込み、Pages に公開します。
 
 ### 管理画面（GAS / スプレッドシート編集UI）
 - アクセス方法: Web アプリのURLに `?admin=1` を付けて開きます。
@@ -173,7 +179,7 @@ GitHub リポジトリ設定:
 - 本番で CORS エラーになる
   - GAS 側の公開設定・ヘッダを確認してください。一般公開の GET JSON であれば通常は問題ありません。
 - Pages で古い API URL が使われる
-  - `vars.API_BASE_URL` が設定されているか、Actions のログで `assets/config.js` の生成を確認してください。
+- `vars.API_URL` が設定されているか、Actions のログで `assets/config.js` の生成を確認してください。
 
 ## ライセンス
 未指定（必要に応じて追加してください）。

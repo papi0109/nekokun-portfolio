@@ -15,9 +15,9 @@ This document describes the development methodology used in this repository so a
   - Hash-based SPA router (`#home`, `#about`, `#skills`, `#projects`, `#contact`).
   - On first page load, performs a single fetch to load portfolio JSON, then renders sections.
   - Uses IntersectionObserver for reveal-on-scroll animations and a responsive header menu.
-- Runtime Config: `assets/config.js` defines `window.__APP_CONFIG__.API_BASE`.
-  - Production: GitHub Actions writes `assets/config.js` from repository variable `API_BASE_URL`.
-  - Local: If `API_BASE` is empty, the frontend falls back to `http://localhost:8888` on `localhost`.
+- Runtime Config: `assets/config.js` defines `window.__APP_CONFIG__.API_URL` (full URL).
+  - Production: GitHub Actions writes `assets/config.js` from repository variable `API_URL`.
+  - Local: If `API_URL` is empty, the frontend falls back to `http://localhost:8888/api/portfolio` on `localhost`.
 - Local GAS Mock: `gas/local-server.js` (Express + CORS). GET-only with `/api/portfolio` and `/api/health`.
 
 ## Development Workflow
@@ -33,7 +33,7 @@ This document describes the development methodology used in this repository so a
    - Open `http://localhost:8000` and confirm data fetched from `http://localhost:8888/api/portfolio`.
    - Health check: `curl http://localhost:8888/api/health` returns `{ ok: true }`.
 4. Deployment
-   - Production builds are static; GitHub Actions (pages.yml) generates `assets/config.js` using `vars.API_BASE_URL`.
+   - Production builds are static; GitHub Actions (pages.yml) generates `assets/config.js` using `vars.API_URL`.
    - Ensure the variable is set to the deployed GAS Web App URL.
 
 ## Coding Conventions
@@ -61,7 +61,7 @@ This document describes the development methodology used in this repository so a
   - Hook scroll reveal for dynamically inserted elements.
 - Configuration
   - For production, never hard-code secrets. Use `assets/config.js` via Actions.
-  - Variable name: `API_BASE_URL` in repository variables; exported to `window.__APP_CONFIG__.API_BASE`.
+  - Variable name: `API_URL` in repository variables; exported to `window.__APP_CONFIG__.API_URL`.
 
 ## Testing Checklist
 - Local
@@ -82,7 +82,7 @@ This document describes the development methodology used in this repository so a
 
 ## Release Checklist
 - Update mock data (or confirm real GAS endpoint) matches frontend expectations.
-- Confirm `vars.API_BASE_URL` is set in the repository when deploying to Pages.
+- Confirm `vars.API_URL` is set in the repository when deploying to Pages.
 - Verify local and production URLs in README.
 - Keep `.clasp.json` `scriptId` updated when working with real GAS.
 
@@ -102,4 +102,3 @@ This document describes the development methodology used in this repository so a
 - PWA (Workbox) for offline caching.
 - Theming (dark mode) via CSS variables.
 - Data schema validation in the frontend before rendering.
-

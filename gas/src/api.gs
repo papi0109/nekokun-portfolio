@@ -14,6 +14,12 @@ function doGet(e) {
   }
   // API JSON
   const data = readAll_();
+  // JSONP support for cross-origin usage (e.g., GitHub Pages)
+  var cb = e && e.parameter && e.parameter.callback;
+  if (cb) {
+    return ContentService.createTextOutput(cb + '(' + JSON.stringify(data) + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
