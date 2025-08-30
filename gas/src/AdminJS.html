@@ -4,7 +4,13 @@
     const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     const msg = $('#msg');
     const pw = $('#pw');
+    const btnLogin = $('#login');
+    const btnLogout = $('#logout');
+    const btnSave = $('#save');
+    const btnReload = $('#reload');
     let state = null;
+    let authed = false;
+    let authPw = '';
 
     function setMsg(t, ok){ msg.textContent = t || ''; msg.className = ok? 'msg ok':'msg'; }
 
@@ -146,23 +152,54 @@
 
     function renderAll(){ renderProfile(); renderSkills(); renderCareers(); renderWorks(); renderHobbies(); }
 
+    function setAuth(v){
+      authed = !!v;
+      btnSave.disabled = !authed;
+      btnLogin.style.display = authed ? 'none' : '';
+      btnLogout.style.display = authed ? '' : 'none';
+      pw.disabled = authed;
+    }
+
     // Events
-    $('#reload').onclick = () => {
+    btnReload.onclick = () => {
       setMsg('Loading...');
       google.script.run.withSuccessHandler((json) => { state = json; setMsg('Loaded', true); renderAll(); }).uiGetData();
     };
-    $('#save').onclick = () => {
+    btnSave.onclick = () => {
+      if (!authed){ setMsg('Please login first'); return; }
       setMsg('Saving...');
-      const payload = { password: pw.value, data: collect() };
+      const payload = { password: authPw, data: collect() };
       google.script.run.withSuccessHandler((res) => {
         if (res && res.ok){ state = res.data; setMsg('Saved', true); }
         else setMsg('Error: ' + (res && res.error || 'Failed'));
       }).uiSaveData(payload);
     };
 
+    btnLogin.onclick = () => {
+      const inputPw = (pw.value || '').trim();
+      if (!inputPw){ setMsg('Enter password'); return; }
+      setMsg('Authenticating...');
+      google.script.run.withSuccessHandler((res) => {
+        if (res && res.ok){
+          authPw = inputPw;
+          setAuth(true);
+          setMsg('Logged in', true);
+        } else {
+          setMsg('Login failed');
+        }
+      }).uiLogin({ password: inputPw });
+    };
+
+    btnLogout.onclick = () => {
+      authPw = '';
+      setAuth(false);
+      pw.value = '';
+      setMsg('Logged out', true);
+    };
+
     bindTabs();
+    setAuth(false);
     // Initial load
-    $('#reload').click();
+    btnReload.click();
   })();
 </script>
-

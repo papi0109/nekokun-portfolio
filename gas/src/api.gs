@@ -173,3 +173,15 @@ function uiSaveData(payload) {
   saveAll_(payload.data || {});
   return { ok: true, data: readAll_() };
 }
+
+/**
+ * Pseudo login for Admin UI.
+ * Verifies password and returns ok; no server-side session is created.
+ */
+function uiLogin(payload) {
+  const pw = getAdminPassword_();
+  if (payload && payload.password && pw && payload.password === pw) {
+    return { ok: true };
+  }
+  return { ok: false, error: 'Unauthorized' };
+}

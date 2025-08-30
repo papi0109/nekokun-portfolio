@@ -4,8 +4,10 @@
     <div class="brand">Admin Console (GAS)</div>
     <div class="row">
       <input id="pw" type="password" placeholder="Password" />
+      <button id="login">Login</button>
+      <button id="logout" style="display:none;">Logout</button>
       <button id="reload">Reload</button>
-      <button id="save" class="primary">Save All</button>
+      <button id="save" class="primary" disabled>Save All</button>
       <span id="msg" class="msg"></span>
     </div>
   </header>
@@ -65,4 +67,3 @@
   </main>
 </div>
 <?!= include('AdminJS'); ?>
-
